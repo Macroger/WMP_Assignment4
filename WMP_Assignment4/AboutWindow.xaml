@@ -1,0 +1,22 @@
+﻿<Window x:Class="WMP_Assignment4.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WMP_Assignment4"
+        mc:Ignorable="d"
+        Title="About WMP_Assignment4"
+        Height="200"
+        Width="250"
+        WindowStyle="ToolWindow"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        >
+    <StackPanel >
+        <TextBlock Text="WMP_Assignment4" TextAlignment="Center" Margin="0,10,0,0" />
+        <TextBlock Text="Windows and Mobile Programming Assignment 4" TextAlignment="center" TextWrapping="Wrap" Margin="5,10,0,0"/>
+        <TextBlock Text="Author: Matthew Schatz"  TextAlignment="center" Margin="5,10,0,0"/>
+        <TextBlock Text="Date: October 14, 2019"  TextAlignment="center" Margin="5,10,0,0"/>
+        <Button Name="btnOK" Content="OK" Click="BtnOK_Click" IsCancel="True" Margin="50,20,50,0"/>
+    </StackPanel>
+</Window>

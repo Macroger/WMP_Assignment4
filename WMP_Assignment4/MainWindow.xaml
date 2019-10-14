@@ -1,0 +1,48 @@
+﻿<Window x:Class="WMP_Assignment4.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:self="clr-namespace:WMP_Assignment4"
+        mc:Ignorable="d"
+        Title="MainWindow"
+        Height="450"
+        MinHeight="450"
+        Width="600"
+        MinWidth="600"
+        >
+    
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+
+            <MenuItem Header="_File" MinWidth="30">
+                <MenuItem Header="_Close" Command="Close" InputGestureText="Ctrl+X"/>
+            </MenuItem>
+
+            <MenuItem Header="_Help" MinWidth="30">
+                <MenuItem Header="_About" Command="self:CustomCommands.About"/>
+            </MenuItem>
+
+        </Menu>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <Label Name="lblNumberLinesActive">Number of Line Generators Active:</Label>                    
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Name="tbNumberLinesActive">0</TextBlock>
+            </StatusBarItem>            
+        </StatusBar>
+        <Canvas Name="MainCanvas" SizeChanged="Canvas_SizeChanged">
+
+            <Button Canvas.Left="120" Canvas.Bottom="10" Width="60" ToolTip="Click to spawn another line." Click="StartButton_Click">Start</Button>
+            <Button Canvas.Left="190" Canvas.Bottom="10" Width="60" ToolTip="Click to stop all lines." Click="StopButton_Click">Stop</Button>
+
+            <Slider Canvas.Left="260" Canvas.Bottom="10" Width="80" ToolTip="Changes the length of time tails persist."/>
+
+            <Button Canvas.Left="350" Canvas.Bottom="10" Width="60" ToolTip="Click to pause all line movement.">Pause</Button>
+            <Button Canvas.Left="420" Canvas.Bottom="10" Width="60" ToolTip="Click to resume all line movement.">Resume</Button>
+
+        </Canvas>
+
+    </DockPanel>
+</Window>
