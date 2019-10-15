@@ -26,11 +26,19 @@
         </Menu>
         <StatusBar DockPanel.Dock="Bottom">
             <StatusBarItem>
-                <Label Name="lblNumberLinesActive">Number of Line Generators Active:</Label>                    
+                <Label Name="lblActiveThreads">Active Threads:</Label>                    
             </StatusBarItem>
             <StatusBarItem>
-                <TextBlock Name="tbNumberLinesActive">0</TextBlock>
-            </StatusBarItem>            
+                <TextBlock Name="tbThreadsActive">0</TextBlock>
+            </StatusBarItem>
+            <StatusBarItem>
+                <Label Name="lblErrorMessages">Error Messages:
+                    </Label>
+            </StatusBarItem>
+
+            <StatusBarItem>
+                <TextBlock Name="tbErrorMessages"></TextBlock>
+            </StatusBarItem>
         </StatusBar>
         <Canvas Name="MainCanvas" SizeChanged="Canvas_SizeChanged">
 

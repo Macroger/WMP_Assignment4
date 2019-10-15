@@ -20,9 +20,12 @@ namespace WMP_Assignment4
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        LineGenerator myLineGenerator;
         public MainWindow()
         {
             InitializeComponent();
+            myLineGenerator = new LineGenerator(MainCanvas);
         }
 
 
@@ -118,35 +121,27 @@ namespace WMP_Assignment4
 
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
-            Line myLine = new Line();
-            myLine.Stroke = System.Windows.Media.Brushes.Black;
-            myLine.X1 = 200;
-            myLine.Y1 = 200;
-            myLine.X2 = 400;
-            myLine.Y2 = 200;
-            MainCanvas.Children.Add(myLine);
-
+            if(myLineGenerator.StopFlag == true)
+            {
+                myLineGenerator.StopFlag = false;
+            }
+            try
+            {
+                myLineGenerator.StartThreadSpawner();
+            }
+            catch(InvalidOperationException ex)
+            {
+                MessageBox.Show("Exception caught: " + ex.Message);
+            }
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
-
-
-            List<UIElement> UIElementsToBeRemoved = new List<UIElement>();
-
-            foreach(UIElement element in MainCanvas.Children)
+            if(myLineGenerator.StopFlag == false)
             {
-                //MainTextBox.Text += " " + element.GetType().ToString();
-                if(element.GetType() == typeof(System.Windows.Shapes.Line))
-                {
-                    UIElementsToBeRemoved.Add(element);
-                }
+                myLineGenerator.StopFlag = true;
             }
-
-            foreach(UIElement element in UIElementsToBeRemoved)
-            {
-                MainCanvas.Children.Remove(element);
-            }
+            
         }
     }
 }
