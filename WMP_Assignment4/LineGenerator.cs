@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace WMP_Assignment4
 {
@@ -196,9 +197,9 @@ namespace WMP_Assignment4
             myLine.X2 = lp.X2;
             myLine.Y2 = lp.Y2;
 
-            MessageBox.Show("CheckAccess() shows: " + System.Windows.Controls.Control.Dispatcher.CheckAccess());
+            MessageBox.Show("CheckAccess() shows: " + ActiveCanvas.Dispatcher.CheckAccess());
             // Using the Dispatcher to access the main UI thread.
-            Application.Current.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() =>
+            ActiveCanvas.Dispatcher.Invoke(System.Windows.Threading.DispatcherPriority.Normal, (Action)(() =>
             {
                 ActiveCanvas.Children.Add(myLine);
             }));
