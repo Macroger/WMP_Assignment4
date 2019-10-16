@@ -122,52 +122,6 @@ namespace WMP_Assignment4
         }
 
 
-        private void SpawnLineGeneratorThread()
-        {
-            //LineGenerator myLineGenerator = new LineGenerator(MainCanvas);
-
-
-            //while (int i = 0; i < 5; i++)
-            //{
-            //    MainCanvas.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, (Action)(() =>
-            //    {
-            //        Line myLine = new Line();
-            //        myLineGenerator.CalculateNewLinePoints(myLine);
-            //        myLine.Stroke = Brushes.Black;
-            //        MainCanvas.Children.Add(myLine);
-            //    }));
-            //}
-
-
-
-            //for(int i = 0; i < 5; i++)
-            //{
-            //    MainCanvas.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, (Action)(() =>
-            //    {
-            //        Line myLine = new Line();
-            //        myLineGenerator.CalculateNewLinePoints(myLine);
-            //        myLine.Stroke = Brushes.Black;
-            //        MainCanvas.Children.Add(myLine);
-            //    }));
-            //}
-
-            //NewX2.Show(
-            //    "\n(X1, Y1): (" +myLine.X1.ToString() + ", " +myLine.Y1.ToString() + ")" + 
-            //    "\n(X2, Y2): (" +myLine.X2.ToString() + ", " +myLine.Y2.ToString() +")" +
-            //    "\nCanvasMaxX: " + myLineGenerator.CanvasMaxX +
-            //    "\nCanvasMaxY: " + myLineGenerator.CanvasMaxY);
-
-            //MainCanvas.Children.Add(myLine);
-            //while (myLineGeneratorManager.StopFlag == false)
-            //{
-            //    Line myLine = new Line();
-
-
-            //}
-
-
-
-        }
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
             if(myLineGeneratorManager.Stop == true)
@@ -207,7 +161,6 @@ namespace WMP_Assignment4
         private void TailLengthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             myLineGeneratorManager.TailLength = (int) TailLengthSlider.Value;
-                ;
         }
     }
 }

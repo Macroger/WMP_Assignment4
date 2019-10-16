@@ -96,36 +96,15 @@ namespace WMP_Assignment4
             ActiveCanvas = IncommingCanvas;
         }
 
-        public void TaskMaster()
-        {
-            //Queue<Line> myLineQue = new Queue<Line>();
-
-            //while(_StopFlag == false)
-            //{
-            //    LinePropertiesStruct = LinePropertiesFiller(LinePropertiesStruct, RNG);
-            //    myLineQue.Enqueue(DrawLine(LinePropertiesStruct));
-
-            //    // This check is used to allow a specific number of lines to persist.
-            //    if(myLineQue.Count >= _TailLength)
-            //    {
-            //        RemoveLine(myLineQue.Dequeue());
-            //    }
-
-
-            //    Thread.Sleep(25);
-            //}
-        }
-
-      
 
         public void StartThreadSpawner()
         {
             LineGenerator myLineGenerator = new LineGenerator();
 
-            Task.Run(() =>
-            {
-                MessageBox.Show("Canvas Max Y: " +myLineGenerator.CanvasMaxY+ "\nCanvas Max X: " + myLineGenerator.CanvasMaxX);
-            });
+            //Task.Run(() =>
+            //{
+            //    MessageBox.Show("Canvas Max Y: " +myLineGenerator.CanvasMaxY+ "\nCanvas Max X: " + myLineGenerator.CanvasMaxX);
+            //});
 
             Task t = Task.Run(() =>
             {
@@ -150,11 +129,14 @@ namespace WMP_Assignment4
                         LineQue.Enqueue(myLine);
                         
 
-
-                        if(LineQue.Count >= _TailLength)
+                        while(LineQue.Count >= (_TailLength + 1))
                         {
                             ActiveCanvas.Children.Remove(LineQue.Dequeue());
                         }
+                        //if(LineQue.Count >= _TailLength)
+                        //{
+                        //    ActiveCanvas.Children.Remove(LineQue.Dequeue());
+                        //}
 
                         //Task.Run(() =>
                         //{
