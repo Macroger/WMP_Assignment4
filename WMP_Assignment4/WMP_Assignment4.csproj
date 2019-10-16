@@ -73,6 +73,7 @@
     </Compile>
     <Compile Include="CustomCommands.cs" />
     <Compile Include="LineGenerator.cs" />
+    <Compile Include="LineGeneratorManager.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

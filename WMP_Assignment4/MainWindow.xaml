@@ -15,6 +15,7 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
 
+            
             <MenuItem Header="_File" MinWidth="30">
                 <MenuItem Header="_Close" Command="Close" InputGestureText="Ctrl+X"/>
             </MenuItem>
@@ -40,15 +41,28 @@
                 <TextBlock Name="tbErrorMessages"></TextBlock>
             </StatusBarItem>
         </StatusBar>
-        <Canvas Name="MainCanvas" SizeChanged="Canvas_SizeChanged">
+        <Canvas Name="MainCanvas" >
+            <!--<Line X1="100" Y1="1" X2="100" Y2="371" Stroke="Black"></Line>
+            <Line X1="200" Y1="1" X2="200" Y2="371" Stroke="Black"></Line>
+            <Line X1="300" Y1="1" X2="300" Y2="371" Stroke="Black"></Line>
+            <Line X1="400" Y1="1" X2="400" Y2="371" Stroke="Black"></Line>
+            <Line X1="500" Y1="1" X2="500" Y2="371" Stroke="Black"></Line>
+            <Line X1="1" Y1="100" X2="594" Y2="100" Stroke="Black"></Line>
+            <Line X1="1" Y1="200" X2="594" Y2="200" Stroke="Black"></Line>
+            <Line X1="1" Y1="300" X2="594" Y2="300" Stroke="Black"></Line>
+            <Line X1="1" Y1="400" X2="594" Y2="400" Stroke="Black"></Line>-->
+            <Line X1="10" Y1="10" X2="10" Y2="359" Stroke="Black"></Line>
+            <Line X1="10" Y1="10" X2="582" Y2="10" Stroke="Black"></Line>
+            <Line X1="582" Y1="10" X2="582" Y2="359" Stroke="Black"></Line>
+            <Line X1="582" Y1="359" X2="10" Y2="359" Stroke="Black"></Line>
 
             <Button Canvas.Left="120" Canvas.Bottom="10" Width="60" ToolTip="Click to spawn another line." Click="StartButton_Click">Start</Button>
             <Button Canvas.Left="190" Canvas.Bottom="10" Width="60" ToolTip="Click to stop all lines." Click="StopButton_Click">Stop</Button>
 
-            <Slider Canvas.Left="260" Canvas.Bottom="10" Width="80" ToolTip="Changes the length of time tails persist."/>
+            <Slider Name="TailLengthSlider" Maximum="50" Canvas.Left="260" TickPlacement="BottomRight" TickFrequency="5" Canvas.Bottom="10" Width="80" ValueChanged="TailLengthSlider_ValueChanged" ToolTip="Changes the length of time tails persist."/>
 
-            <Button Canvas.Left="350" Canvas.Bottom="10" Width="60" ToolTip="Click to pause all line movement.">Pause</Button>
-            <Button Canvas.Left="420" Canvas.Bottom="10" Width="60" ToolTip="Click to resume all line movement.">Resume</Button>
+            <Button Canvas.Left="350" Canvas.Bottom="10" Width="60" ToolTip="Click to pause all line movement." Click="PauseButton_Click">Pause</Button>
+            <Button Canvas.Left="420" Canvas.Bottom="10" Width="60" ToolTip="Click to resume all line movement." Click="ResumeButton_Click">Resume</Button>
 
         </Canvas>
 

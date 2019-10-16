@@ -21,11 +21,13 @@ namespace WMP_Assignment4
     public partial class MainWindow : Window
     {
 
-        LineGenerator myLineGenerator;
+        LineGeneratorManager myLineGeneratorManager;
+        
         public MainWindow()
+
         {
             InitializeComponent();
-            myLineGenerator = new LineGenerator(MainCanvas);
+            myLineGeneratorManager = new LineGeneratorManager(MainCanvas);
         }
 
 
@@ -119,29 +121,93 @@ namespace WMP_Assignment4
 
         }
 
+
+        private void SpawnLineGeneratorThread()
+        {
+            //LineGenerator myLineGenerator = new LineGenerator(MainCanvas);
+
+
+            //while (int i = 0; i < 5; i++)
+            //{
+            //    MainCanvas.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, (Action)(() =>
+            //    {
+            //        Line myLine = new Line();
+            //        myLineGenerator.CalculateNewLinePoints(myLine);
+            //        myLine.Stroke = Brushes.Black;
+            //        MainCanvas.Children.Add(myLine);
+            //    }));
+            //}
+
+
+
+            //for(int i = 0; i < 5; i++)
+            //{
+            //    MainCanvas.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, (Action)(() =>
+            //    {
+            //        Line myLine = new Line();
+            //        myLineGenerator.CalculateNewLinePoints(myLine);
+            //        myLine.Stroke = Brushes.Black;
+            //        MainCanvas.Children.Add(myLine);
+            //    }));
+            //}
+
+            //NewX2.Show(
+            //    "\n(X1, Y1): (" +myLine.X1.ToString() + ", " +myLine.Y1.ToString() + ")" + 
+            //    "\n(X2, Y2): (" +myLine.X2.ToString() + ", " +myLine.Y2.ToString() +")" +
+            //    "\nCanvasMaxX: " + myLineGenerator.CanvasMaxX +
+            //    "\nCanvasMaxY: " + myLineGenerator.CanvasMaxY);
+
+            //MainCanvas.Children.Add(myLine);
+            //while (myLineGeneratorManager.StopFlag == false)
+            //{
+            //    Line myLine = new Line();
+
+
+            //}
+
+
+
+        }
         private void StartButton_Click(object sender, RoutedEventArgs e)
         {
-            if(myLineGenerator.StopFlag == true)
+            if(myLineGeneratorManager.Stop == true)
             {
-                myLineGenerator.StopFlag = false;
+                myLineGeneratorManager.Stop = false;
             }
-            try
-            {
-                myLineGenerator.StartThreadSpawner();
-            }
-            catch(InvalidOperationException ex)
-            {
-                MessageBox.Show("Exception caught: " + ex.Message);
-            }
+
+            myLineGeneratorManager.StartThreadSpawner();
+            
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
         {
-            if(myLineGenerator.StopFlag == false)
+            if(myLineGeneratorManager.Stop == false)
             {
-                myLineGenerator.StopFlag = true;
+                myLineGeneratorManager.Stop = true;
             }
-            
+        }
+        
+
+        private void PauseButton_Click(object sender, RoutedEventArgs e)
+        {
+            if(myLineGeneratorManager.Pause == false)
+            {
+                myLineGeneratorManager.Pause = true;
+            }
+        }
+
+        private void ResumeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (myLineGeneratorManager.Pause == true)
+            {
+                myLineGeneratorManager.Pause = false;
+            }
+        }
+
+        private void TailLengthSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        {
+            myLineGeneratorManager.TailLength = (int) TailLengthSlider.Value;
+                ;
         }
     }
 }
