@@ -205,26 +205,44 @@ namespace WMP_Assignment4
                 NextPosition = PreviousPoints.Y - Y_MovementIncrement;
                 if (NextPosition <= CanvasMinY)
                 {
-                    // Check if X is also at the edge, that would indicate the current position is the top right.
+                    // Check if X is at the eastern edge, that would indicate the current position is the top right.
                     NextPosition = PreviousPoints.X + X_MovementIncrement;
                     if (NextPosition >= CanvasMaxX)
                     {
                         // X component will be beyond the edge of the canvas. This is happening at same time as Y component being over the edge. 
                         // This point is either in the top right of the screen or beyond it. Redirect to South, SouthWest, or West.
                         DirectionTrend = RNG.Next((int)DirectionTrends.South, (int)DirectionTrends.West);
+                        DirectionTrendChanged = true;
                     }
                     else
-                    {
-                        // Point will be at Northern edge of screen, change its direction trend to something that doesn't have a North component.
-                        DirectionTrend = RNG.Next((int)DirectionTrends.East, (int)DirectionTrends.West);
+                    {   
+                        // Checks if X is on the western edge.
+                        NextPosition = PreviousPoints.X - X_MovementIncrement;
+                        if(NextPosition <= CanvasMinX)
+                        {
+                            // X component will be beyond the western edge of the canvas. This is happening at same time as Y component being over the edge. 
+                            int[] DirectionArray = new int[] {
+                                (int)DirectionTrends.South,
+                                (int)DirectionTrends.SouthEast,
+                                (int)DirectionTrends.East,
+                            };
+
+                            // Applying a randomly selected direction trend.
+                            DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
+                            DirectionTrendChanged = true;
+                        }
+                        else
+                        {
+                            // Point will be at Northern edge of screen, change its direction trend to something that doesn't have a North component.
+                            DirectionTrend = RNG.Next((int)DirectionTrends.East, (int)DirectionTrends.West);
+                            DirectionTrendChanged = true;
+                        }
+                        
                     }
-
-                    DirectionTrendChanged = true;
-
                 }
                 else
                 {
-                    // Check if the X coord is close to the edge.
+                    // Check if the X coord is close to the eastern edge.
                     NextPosition = PreviousPoints.X + X_MovementIncrement;
                     if (NextPosition >= CanvasMaxX)
                     {
@@ -243,6 +261,26 @@ namespace WMP_Assignment4
                         // Applying a randomly selected direction trend.
                         DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
                         DirectionTrendChanged = true;
+                    }
+                    else
+                    {
+                        // Check if point will be at western edge.
+                        NextPosition = PreviousPoints.X - X_MovementIncrement;
+                        if (NextPosition <= CanvasMinX)
+                        {
+                            // X component will be beyond the western edge of the canvas.
+                            int[] DirectionArray = new int[] {
+                                (int)DirectionTrends.South,
+                                (int)DirectionTrends.SouthWest,
+                                (int)DirectionTrends.West,
+                                (int)DirectionTrends.NorthWest,
+                                (int)DirectionTrends.North
+                            };
+
+                            // Applying a randomly selected direction trend.
+                            DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
+                            DirectionTrendChanged = true;
+                        }
                     }
                 }
             }
@@ -311,9 +349,8 @@ namespace WMP_Assignment4
             }
             else if (DirectionTrend == (int)DirectionTrends.SouthEast)
             {
-                // Checks if the next increment will put the Y point beyond the edge of the canvas. Movement is to the south.
+                // Checks if the next increment will put the Y point at or beyond the southern edge of the canvas.
                 NextPosition = PreviousPoints.Y + Y_MovementIncrement;
-
                 if (NextPosition >= CanvasMinY)
                 {
                     // Check if X is also going to be over the edge, that would indicate the current position is the bottom right.
