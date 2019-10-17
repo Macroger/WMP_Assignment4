@@ -17,9 +17,13 @@ namespace WMP_Assignment4
     {
         private volatile int _TailLength = 5;
 
-        private List<Task> TaskPool = new List<Task>();
+        private volatile int _SpawnTimeInMilliSeconds = 150;
 
-        private readonly object LockObj = new object();
+        private volatile bool _StopFlag = false;
+
+        private volatile bool _PauseFlag = false;
+
+        private List<Task> TaskPool = new List<Task>();
 
         private readonly object StopCommandLockObj = new object();
 
@@ -28,28 +32,6 @@ namespace WMP_Assignment4
         private readonly object TailPersistenceLockObj = new object();
 
         private Canvas ActiveCanvas;
-
-        private volatile int _SpawnTimeInMilliSeconds = 150;
-
-        private volatile bool _StopFlag = false;
-
-        private volatile bool _PauseFlag = false;
-
-        //private string[] AllowedColours = new string[] {
-        //    "Red",
-        //    "MediumOrchid",
-        //    "Green",
-        //    "Goldenrod",
-        //    "IndianRed",
-        //    "Teal",
-        //    "Orange",
-        //    "Purple",
-        //    "Magenta",
-        //    "Springgreen",
-        //    "SteelBlue",
-        //    "Seagreen",
-        //    "DarkOrange"
-        //};
 
         private List<Brush> myBrushList = new List<Brush>()
         {
@@ -151,11 +133,12 @@ namespace WMP_Assignment4
             }
             
             // For any tasks that refuse to shut down properly a forced shut down is in order.
-            foreach(Task t in NonRespondingTasksList)
+            for(int i = 0; i < NonRespondingTasksList.Count; i++)
             {
-                t.Dispose();
+                NonRespondingTasksList[i].Dispose();
             }
 
+            // Since all tasks have now shut down TaskPool can be cleared.
             TaskPool.Clear();
         }
 

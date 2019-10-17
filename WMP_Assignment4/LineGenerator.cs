@@ -43,6 +43,8 @@ namespace WMP_Assignment4
         private bool FirstLine = true;
 
         // These values were determined by observing the values of height and width of the canvas element. I used the properties menu of visual studio to do this in conjunction with the XAML designer/viewer.
+        // *WARNING* If the window size is changed these values will need to be adjusted.
+        // Note: It would be better to link these values to the active canvas so the values could just be read in - however I tried this and it led to some irregularities in edge calculations. Developer beware!
         public double CanvasMaxX = 582;
         public double CanvasMaxY = 359;
         public double CanvasMinX = 10;
@@ -1055,13 +1057,12 @@ namespace WMP_Assignment4
             PointInfo NewPointA = new PointInfo();
             PointInfo NewPointB = new PointInfo();
 
-
             // PointADirectionTrend Section:
 
             if (PointADirectionTrend == (int)DirectionTrends.None)
             {
                 Random RNG = new Random();
-                PointADirectionTrend = RNG.Next(0, (int)DirectionTrends.NorthWest);
+                PointADirectionTrend = RNG.Next((int)DirectionTrends.NorthWest);
             }
             
             if (PointADirectionTrend == (int)DirectionTrends.North)
@@ -1102,7 +1103,7 @@ namespace WMP_Assignment4
             {
                 // This is an error condition; I do not anticipate it occuring, but incase it does I think a graceful way to handle it is to adjust the PointBDirectionTrend to a better value.
                 Random RNG = new Random();
-                PointBDirectionTrend = RNG.Next(0, (int)DirectionTrends.NorthWest);
+                PointBDirectionTrend = RNG.Next((int)DirectionTrends.NorthWest);
             }
             
             if(PointBDirectionTrend == (int)DirectionTrends.North)
@@ -1149,6 +1150,8 @@ namespace WMP_Assignment4
             MyLine.X2 = NewPointB.X;
             MyLine.Y2 = NewPointB.Y;
 
+
+            // <DebuggingStatements>
             if(NewPointA.X > ((double)LineSpeeds.High + PreviousPointA.X) || NewPointA.X < ((double)LineSpeeds.High - PreviousPointA.X))
             {
                 Task.Run(() => 
@@ -1164,7 +1167,7 @@ namespace WMP_Assignment4
                     MessageBox.Show("Detected exceptional increase/decrease in Y pos.");
                 });
             }
-
+            // </DebuggingStatements>
 
             // Recording the new values as the previous points.
             PreviousPointA.X = NewPointA.X;

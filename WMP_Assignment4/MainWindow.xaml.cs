@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -27,7 +28,7 @@ namespace WMP_Assignment4
 
         {
             InitializeComponent();
-            myLineGeneratorManager = new LineGeneratorManager(MainCanvas);
+            myLineGeneratorManager = new LineGeneratorManager(LineCanvas);
         }
 
         /*
@@ -181,9 +182,11 @@ namespace WMP_Assignment4
             {
                 myLineGeneratorManager.Stop = false;
             }
+            // Make this thread sleep for a few milliseconds so that the call to StartThreadSpawner doesn't occur immediately after toggling myLineGeneratorManager.Stop.
+            Thread.Sleep(10);
 
             myLineGeneratorManager.StartThreadSpawner();
-            
+
         }
 
         private void StopButton_Click(object sender, RoutedEventArgs e)
@@ -192,18 +195,9 @@ namespace WMP_Assignment4
             {
                 myLineGeneratorManager.CloseAllThreads();
 
-                List<Line> LineList = new List<Line>();
+                MessageBox.Show("Current count of lines: " + LineCanvas.Children.Count.ToString());
 
-                foreach(UIElement element in MainCanvas.Children)
-                {
-                    MessageBox.Show(element.GetType().ToString());      // LAST ENTRY MADE 12:53 AM Oct 17, 2019.
-                    //LineList.Add(line);
-                }
-                foreach(Line line in LineList)
-                {
-                    MainCanvas.Children.Remove(line);
-                }
-
+                LineCanvas.Children.Clear();
             }
         }
         
