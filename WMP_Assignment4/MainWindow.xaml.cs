@@ -30,6 +30,59 @@ namespace WMP_Assignment4
             myLineGeneratorManager = new LineGeneratorManager(MainCanvas);
         }
 
+        /*
+        **	Method Name:	AboutCommand_CanExecute	
+        **	Parameters:		object sender; An object containing information about the sender of this event.
+        **                  CanExecuteRoutedEventArgs e; An object containing detailed information about the event, other than sender name/ID.
+        **	Return Values:	void; No return values.	
+        **	Description:	This method is used to determine whether About command is in a position to activate. This method determines the enabled/disabled state of the About command.	
+        */
+        private void AboutCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+
+            e.CanExecute = true;
+        }
+
+        /*
+        **	Method Name:	AboutCommand_Executed	
+        **	Parameters:		object sender; An object containing information about the sender of this event.
+        **                  CanExecuteRoutedEventArgs e; An object containing detailed information about the event, other than sender name/ID.
+        **	Return Values:	void; No return values.	
+        **	Description:	This method is used to instantiate a AboutWindow object, and display it for the user to read. It is designed to be a modal window, forcing the user to dismiss it in order to resume normal operation. 
+        */
+        private void AboutCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            AboutWindow window1 = new AboutWindow();
+            window1.Owner = this;
+            window1.ShowDialog();
+        }
+
+        /*
+        **	Method Name:	CloseCommand_CanExecute	
+        **	Parameters:		object sender; An object containing information about the sender of this event.
+        **                  CanExecuteRoutedEventArgs e; An object containing detailed information about the event, other than sender name/ID.
+        **	Return Values:	void; No return values.	
+        **	Description:	This method is used to determine whether Close command is in a position to activate. This method determines the enabled/disabled state of the Close command.	
+        */
+        private void CloseCommand_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = true;
+        }
+
+        /*
+        **	Method Name:	CloseCommand_Executed	
+        **	Parameters:		object sender; An object containing information about the sender of this event.
+        **                  CanExecuteRoutedEventArgs e; An object containing detailed information about the event, other than sender name/ID.
+        **	Return Values:	void; No return values.	
+        **	Description:	This method is used to shut down the application. If the user has entered text it will ask them if they wish to save first.
+        */
+        private void CloseCommand_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            myLineGeneratorManager.CloseAllThreads();
+
+            System.Windows.Application.Current.Shutdown();
+        }
+
 
         /*
         **	Method Name:	Canvas_SizeChanged()
@@ -137,7 +190,20 @@ namespace WMP_Assignment4
         {
             if(myLineGeneratorManager.Stop == false)
             {
-                myLineGeneratorManager.Stop = true;
+                myLineGeneratorManager.CloseAllThreads();
+
+                List<Line> LineList = new List<Line>();
+
+                foreach(UIElement element in MainCanvas.Children)
+                {
+                    MessageBox.Show(element.GetType().ToString());      // LAST ENTRY MADE 12:53 AM Oct 17, 2019.
+                    //LineList.Add(line);
+                }
+                foreach(Line line in LineList)
+                {
+                    MainCanvas.Children.Remove(line);
+                }
+
             }
         }
         

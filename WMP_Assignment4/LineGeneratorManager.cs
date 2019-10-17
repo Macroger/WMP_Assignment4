@@ -29,21 +29,43 @@ namespace WMP_Assignment4
 
         private Canvas ActiveCanvas;
 
+        private volatile int _SpawnTimeInMilliSeconds = 150;
+
         private volatile bool _StopFlag = false;
 
         private volatile bool _PauseFlag = false;
 
-        private string[] AllowedColours = new string[] {
-            "Red",
-            "Blue",
-            "Green",
-            "Yellow",
-            "Aqua",
-            "Teal",
-            "Orange",
-            "Black",
-            "Purple",
-            "Lavender"
+        //private string[] AllowedColours = new string[] {
+        //    "Red",
+        //    "MediumOrchid",
+        //    "Green",
+        //    "Goldenrod",
+        //    "IndianRed",
+        //    "Teal",
+        //    "Orange",
+        //    "Purple",
+        //    "Magenta",
+        //    "Springgreen",
+        //    "SteelBlue",
+        //    "Seagreen",
+        //    "DarkOrange"
+        //};
+
+        private List<Brush> myBrushList = new List<Brush>()
+        {
+            Brushes.Transparent,
+            Brushes.Red,
+            Brushes.Green,
+            Brushes.MediumOrchid,
+            Brushes.Goldenrod,
+            Brushes.IndianRed,
+            Brushes.Teal,
+            Brushes.MediumPurple,
+            Brushes.Magenta,
+            Brushes.SpringGreen,
+            Brushes.SteelBlue,
+            Brushes.SeaGreen,
+            Brushes.DarkOrange
         };
 
         public bool Stop
@@ -91,105 +113,123 @@ namespace WMP_Assignment4
             }
         }
 
+        public int SpawnTimeInMilliSeconds
+        {
+            get 
+            {
+                return _SpawnTimeInMilliSeconds;
+            }
+            set 
+            {
+                if (value < 1500 && value > 0)
+                {
+                    _SpawnTimeInMilliSeconds = value;
+                }
+            }
+        }
+
+
         public LineGeneratorManager(Canvas IncommingCanvas)
         {
             ActiveCanvas = IncommingCanvas;
         }
 
 
+        public void CloseAllThreads()
+        {
+            _StopFlag = true;
+
+            List<Task> NonRespondingTasksList = new List<Task>();
+
+            foreach(Task t in TaskPool)
+            {
+                // Wait for the equivalent of one cycle for the thread to end, 
+                if(t.Wait(_SpawnTimeInMilliSeconds) == false)
+                {
+                    NonRespondingTasksList.Add(t);
+                }
+            }
+            
+            // For any tasks that refuse to shut down properly a forced shut down is in order.
+            foreach(Task t in NonRespondingTasksList)
+            {
+                t.Dispose();
+            }
+
+            TaskPool.Clear();
+        }
+
+
         public void StartThreadSpawner()
         {
             LineGenerator myLineGenerator = new LineGenerator();
+            Brush ThreadColour = GetRandomBrushColour();
 
-            //Task.Run(() =>
-            //{
-            //    MessageBox.Show("Canvas Max Y: " +myLineGenerator.CanvasMaxY+ "\nCanvas Max X: " + myLineGenerator.CanvasMaxX);
-            //});
-
+            // Spawning the task (thread) that will perform the work of constantly generating new lines and sending them to the UI thread. Can be stopped via _StopFlag.
             Task t = Task.Run(() =>
             {
                 Queue<Line> LineQue = new Queue<Line>();
-                int Counter = 0;
 
-                while(_StopFlag == false)
+                while (_StopFlag == false)
                 {
-
                     while(_PauseFlag == true)
                     {
                         Thread.Sleep(150);
                     }
 
+                    // I am putting this check in to ensure that no more lines are drawn once the stop flag has tripped.
+                    if(_StopFlag == true)
+                    {
+                        break;
+                    }
+
+                    // This use of the dispatcher is necessary to have the UI thread access and told to draw the lines that we are generating.
                     ActiveCanvas.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Send, (Action)(() =>
                     {
-                        Counter++;
+                        // Generate a new line.
                         Line myLine = new Line();
                         myLineGenerator.CalculateNewLinePoints(myLine);
-                        myLine.Stroke = Brushes.Black;
+                        myLine.Stroke = ThreadColour;
+
+                        // Add the line to the collection of elements for the ActiveCanvas.
                         ActiveCanvas.Children.Add(myLine);
+
+                        // Add the line to the que of lines.
                         LineQue.Enqueue(myLine);
                         
-
+                        // This code clears up the extra lines, once the desired number of tails has been reached.
                         while(LineQue.Count >= (_TailLength + 1))
                         {
                             ActiveCanvas.Children.Remove(LineQue.Dequeue());
                         }
-                        //if(LineQue.Count >= _TailLength)
-                        //{
-                        //    ActiveCanvas.Children.Remove(LineQue.Dequeue());
-                        //}
-
-                        //Task.Run(() =>
-                        //{
-                        //    MessageBox.Show(
-                        //        "PointA Direction Trend: " + myLineGenerator.PointADirectionTrend +
-                        //        "PointB Direction Trend: " + myLineGenerator.PointBDirectionTrend +
-                        //        "\n");
-                        //});
-
-
                     }));
-                    Thread.Sleep(150);
-                    
 
+                    // This sleep command determines how fast the lines are generated, reducing the time here equals faster line generation.
+                    Thread.Sleep(_SpawnTimeInMilliSeconds);
                 }
-                //for(int i = 0; i< 5; i++)
-                //{
-                //    ActiveCanvas.Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, (Action)(() =>
-                //    {
-                //        Line myLine = new Line();
-                //        myLineGenerator.CalculateNewLinePoints(myLine);
-                //        myLine.Stroke = Brushes.Black;
-                //        ActiveCanvas.Children.Add(myLine);
-                //    }));
-                //}
-                
             });
 
             TaskPool.Add(t);
+
         }
 
         /*
         **	Method Name:	GetRandomBrushColour()
         **	Parameters:		None.
         **	Return Values:	None.
-        **	Description:	This method is used to select a random brush color from the set of brushes. The code is heavily inspired by code I found online at stackoverflow on October 14, 2019.
-        **                  https://stackoverflow.com/questions/27549546/pick-wpf-random-brush-color. This code is designed to choose a random brush from the set of brushes using a form of reflection.
+        **	Description:	This method is used to select a random brush color from the set of brushes. It makes use of a list loaded with colour brushes and chooses one at random.
         */
-
-        private Brush GetRandomBrushColour(Random RNG)
+        private Brush GetRandomBrushColour()
         {
+            Random RNG = new Random();
+
             Brush Result = Brushes.Transparent;
 
-            Type BrushesType = typeof(Brushes);
+            int RandomBrushIndex = RNG.Next(myBrushList.Count);
 
-            PropertyInfo[] BrushProperties = BrushesType.GetProperties();
-
-            int RandomNumber = RNG.Next(BrushProperties.Length);
-
-            Result = (Brush)BrushProperties[RandomNumber].GetValue(null, null);
+            Result = myBrushList[RandomBrushIndex];
 
             return Result;
         }
-
     }
 }

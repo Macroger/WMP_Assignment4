@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Shapes;
 
@@ -7,7 +9,7 @@ namespace WMP_Assignment4
 {
     class LineGenerator
     {
-        private struct PreviousPoint
+        private struct PointInfo
         {
             public double X;
             public double Y;
@@ -18,8 +20,8 @@ namespace WMP_Assignment4
         {
             Default = 1,
             Low = 2,
-            Medium = 4,
-            High = 6
+            Medium = 5,
+            High = 10
         }
 
         private enum DirectionTrends
@@ -35,8 +37,8 @@ namespace WMP_Assignment4
             NorthWest            
         }
 
-        PreviousPoint PreviousPointA = new PreviousPoint();
-        PreviousPoint PreviousPointB = new PreviousPoint();
+        PointInfo PreviousPointA = new PointInfo();
+        PointInfo PreviousPointB = new PointInfo();
         
         private bool FirstLine = true;
 
@@ -57,20 +59,16 @@ namespace WMP_Assignment4
         public int PointADirectionTrend = (int)DirectionTrends.None;
         public int PointBDirectionTrend = (int)DirectionTrends.None;
 
-        public LineGenerator()
-        {
-
-        }
         private void GenerateRandomStartingPoints(Line MyLine)
         {
             Random RNG = new Random();
 
             // Need to generate randomized starting positions for this line.
-            MyLine.X1 = RNG.Next(0, (int)CanvasMaxX);
-            MyLine.X2 = RNG.Next(0, (int)CanvasMaxX);
+            MyLine.X1 = RNG.Next((int)CanvasMinX, (int)CanvasMaxX);
+            MyLine.X2 = RNG.Next((int)CanvasMinX, (int)CanvasMaxX);
             
-            MyLine.Y1 = RNG.Next(0, (int)CanvasMaxY);
-            MyLine.Y2 = RNG.Next(0, (int)CanvasMaxY);
+            MyLine.Y1 = RNG.Next((int)CanvasMinY, (int)CanvasMaxY);
+            MyLine.Y2 = RNG.Next((int)CanvasMinY, (int)CanvasMaxY);
 
             // Rounding the results.
             MyLine.X1 = Math.Round(MyLine.X1, 0);
@@ -79,23 +77,6 @@ namespace WMP_Assignment4
             MyLine.X2 = Math.Round(MyLine.X2, 0);
             MyLine.Y2 = Math.Round(MyLine.Y2, 0);
 
-
-            if(MyLine.Y1 == MyLine.Y2 && MyLine.X1 == MyLine.X2)
-            {
-                // Points are identical, need to re-adjust.
-                MyLine.X1 = RNG.Next(0, (int)CanvasMaxX);
-                MyLine.X2 = RNG.Next(0, (int)CanvasMaxX);
-
-                MyLine.Y1 = RNG.Next(0, (int)CanvasMaxY);
-                MyLine.Y2 = RNG.Next(0, (int)CanvasMaxY);
-
-                // Rounding the results.
-                MyLine.X1 = Math.Round(MyLine.X1, 0);
-                MyLine.Y1 = Math.Round(MyLine.Y1, 0);
-
-                MyLine.X2 = Math.Round(MyLine.X2, 0);
-                MyLine.Y2 = Math.Round(MyLine.Y2, 0);
-            }
 
             // Recording the values so they can be referenced by future lines.
             PreviousPointA.X = MyLine.X1;
@@ -108,7 +89,7 @@ namespace WMP_Assignment4
 
         private bool DetermineDirectionTrend(string WhichPoint)
         {
-            PreviousPoint PreviousPoints = new PreviousPoint();
+            PointInfo PreviousPoints = new PointInfo();
 
             int DirectionTrend = 0;
 
@@ -173,6 +154,8 @@ namespace WMP_Assignment4
                         }
                         else
                         {
+                            // Point is beyond Northern edge, but not Eastern or Western edges.
+
                             // Point will be at Northern edge of screen but not Eastern or Western; Change its direction trend to SouthEast, South, or SouthWest.
                             int[] DirectionArray = new int[] {
                                 (int)DirectionTrends.SouthEast,
@@ -216,6 +199,8 @@ namespace WMP_Assignment4
                         NextPosition = PreviousPoints.X + X_MovementIncrement;
                         if (NextPosition >= CanvasMaxX)
                         {
+                            // Point is on Eastern edge.
+
                             // Point is on Eastern edge, redirect to NorthWest, West, or SouthWest.
                             int[] DirectionArray = new int[] {
                                 (int)DirectionTrends.SouthWest,
@@ -322,57 +307,45 @@ namespace WMP_Assignment4
             }
             else if (DirectionTrend == (int)DirectionTrends.East)
             {
-                // Check if near the right edge.
+                // Check if point is at/beyond the right edge.
                 NextPosition = PreviousPoints.X + X_MovementIncrement;
                 if (NextPosition >= CanvasMaxX)
                 {
-                    // Checking if the Y is near the edge also. Checking if on the northern edge.
-                    NextPosition = PreviousPoints.Y - Y_MovementIncrement;
-                    if (NextPosition <= CanvasMaxY)
-                    {
-                        // Line is stuck on an edge, need to push it off.
-                        // Setting up a customized array to make it easier to randomly select one of the valid options in this situation.
-                        int[] DirectionArray = new int[] {
-                                (int)DirectionTrends.South,
-                                (int)DirectionTrends.SouthWest,
-                                (int)DirectionTrends.West,
-                            };
+                    // Point is at or beyond the Eastern edge.
 
-                        // Applying a randomly selected direction trend.
-                        DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
+                    // Checking if the Y is on the Northern edge.
+                    NextPosition = PreviousPoints.Y - Y_MovementIncrement;
+                    if (NextPosition <= CanvasMinY)
+                    {
+                        // Point is at/beyond North Eastern edge.
+
+                        // Point is on or beyond the North Eastern edge. Redirect to SouthWest. 
+                        DirectionTrend = (int)DirectionTrends.SouthWest;
                         DirectionTrendChanged = true;
 
                     }
                     else
                     {
-                        // Checking if on the Southern edge.
+                        // Checking if point is at/beyond the Southern edge.
                         NextPosition = PreviousPoints.Y + Y_MovementIncrement;
                         if(NextPosition >= CanvasMaxY)
                         {
-                            // Line is stuck on south edge, need to push it off.
-                            // Setting up a customized array to make it easier to randomly select one of the valid options in this situation.
-                            int[] DirectionArray = new int[] {
-                                (int)DirectionTrends.NorthWest,
-                                (int)DirectionTrends.North,
-                                (int)DirectionTrends.West,
-                            };
+                            // Point is at/beyond South Eastern edge.
 
-                            // Applying a randomly selected direction trend.
-                            DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
+
+                            // Point is on or beyond the South Eastern edge. Redirect to NorthWest. 
+                            DirectionTrend = (int)DirectionTrends.NorthWest;
                             DirectionTrendChanged = true;
                         }
                         else
                         {
-                            // X component will be beyond the edge of the canvas.
-                            // This point is either at the right of the screen or beyond it. Redirect to anything without East component (South, SouthWest, West, NorthWest, North).
+                            // Point is at/beyond South edge, but NOT Eastern or Western edges.
 
-                            // Setting up a customized array to make it easier to randomly select one of the valid options in this situation.
+                            // Point is on or beyond the South edge. Redirect to NorthWest, North, or NorthEast. 
                             int[] DirectionArray = new int[] {
-                                (int)DirectionTrends.South,
-                                (int)DirectionTrends.SouthWest,
-                                (int)DirectionTrends.West,
                                 (int)DirectionTrends.NorthWest,
-                                (int)DirectionTrends.North
+                                (int)DirectionTrends.North,
+                                (int)DirectionTrends.NorthEast                                
                             };
 
                             // Applying a randomly selected direction trend.
@@ -382,39 +355,91 @@ namespace WMP_Assignment4
                        
                     }
                 }
-            }
-            else if (DirectionTrend == (int)DirectionTrends.SouthEast)
-            {
-                // Checks if the next increment will put the Y point at or beyond the southern edge of the canvas.
-                NextPosition = PreviousPoints.Y + Y_MovementIncrement;
-                if (NextPosition >= CanvasMaxY)
+                else
                 {
-                    // Check if X is also going to be over the edge, that would indicate the current position is the bottom right.
-                    NextPosition = PreviousPoints.X + X_MovementIncrement;
-                    if (NextPosition >= CanvasMaxX)
+                    // Point is NOT beyond East edge.
+
+                    // Check if point is on/beyond the Northern edge.
+                    NextPosition = PreviousPoints.Y - Y_MovementIncrement;
+                    if(NextPosition <= CanvasMinY)
                     {
-                        // X component will be beyond the edge of the canvas. This is happening at same time as Y component being over the edge. 
-                        // This point is either in the bottom right of the screen or beyond it. Redirect to NorthWest.
-                        DirectionTrend = (int)DirectionTrends.North;
+                        // Point is on/beyond Northern edge, but NOT the Eastern edge.
+
+                        // Point is on/beyond the Northern edge. Redirect it to the South, SouthEast, or SouthWest.
+                        int[] DirectionArray = new int[] {
+                                (int)DirectionTrends.South,
+                                (int)DirectionTrends.SouthEast,
+                                (int)DirectionTrends.SouthWest
+                            };
+
+                        // Applying a randomly selected direction trend.
+                        DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
                         DirectionTrendChanged = true;
                     }
                     else
                     {
-                        // Check if X is possibly going to be over the western(left) edge, that would indicate the current position is the bottom left.
+                        // Point is NOT beyond East edge and NOT beyond the North.
+
+                        // Check if point is on/beyond the Southern edge.
+                        NextPosition = PreviousPoints.Y + Y_MovementIncrement;
+                        if(NextPosition >= CanvasMaxY)
+                        {
+                            // Point is NOT beyond East edge and IS beyond the Southern edge.
+
+
+                            // Point is beyond South edge. Redirect it to North, NorthEast, or NorthWest.
+                            int[] DirectionArray = new int[] {
+                                (int)DirectionTrends.North,
+                                (int)DirectionTrends.NorthEast,
+                                (int)DirectionTrends.NorthWest
+                            };
+
+                            // Applying a randomly selected direction trend.
+                            DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
+                            DirectionTrendChanged = true;
+                        }
+                    }
+                }
+            }
+            else if (DirectionTrend == (int)DirectionTrends.SouthEast)
+            {
+                // Checks if the next increment will put the point at or beyond the Southern edge of the canvas.
+                NextPosition = PreviousPoints.Y + Y_MovementIncrement;
+                if (NextPosition >= CanvasMaxY)
+                {
+                    // Point is at/beyond Southern edge.
+
+                    // Check if X is also going to be over the edge, that would indicate the current position is at/beyond the bottom right.
+                    NextPosition = PreviousPoints.X + X_MovementIncrement;
+                    if (NextPosition >= CanvasMaxX)
+                    {
+                        // Point is at/beyond SouthEastern edge.
+
+                        // This point is either in the bottom right of the screen or beyond it. Redirect to NorthWest.
+                        DirectionTrend = (int)DirectionTrends.NorthWest;
+                        DirectionTrendChanged = true;
+                    }
+                    else
+                    {
+                        // Point is NOT at/beyond Eastern edge but IS at/beyond South edge.
+
+
+                        // Check if point will be over Western edge. 
                         NextPosition = PreviousPoints.X - X_MovementIncrement;
                         if (NextPosition <= CanvasMinX)
                         {
-                            // This point is either in the bottom left of the screen or beyond it. Redirect to North or NorthEast.
-                            int[] DirectionArray = new int[] {
-                                (int)DirectionTrends.North,
-                                (int)DirectionTrends.NorthEast
-                            };
+                            // Point is at/beyond SouthWestern edge.
 
-                            DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
+
+                            // This point is at/beyond the SouthWestern edge of the screen. Redirect to NorthEast.
+                            DirectionTrend = (int)DirectionTrends.NorthEast;
                             DirectionTrendChanged = true;
                         }
                         else
                         {
+                            // Point is at/beyond South edge, but not East or West edges.
+
+
                             // Point will be at Southern edge of screen, change its direction trend to North, NorthEast, or NorthWest.
                             int[] DirectionArray = new int[] {
                                 (int)DirectionTrends.North,
@@ -430,18 +455,21 @@ namespace WMP_Assignment4
                 }
                 else
                 {
-                    // Check if the X coord is close to the eastern edge.
+                    // Point is NOT beyond South edge.
+
+
+                    // Check if point is at/beyond the Eastern edge.
                     NextPosition = PreviousPoints.X + X_MovementIncrement;
                     if (NextPosition >= CanvasMaxX)
                     {
-                        // X component will be beyond the edge of the canvas.  
-                        // This point is either at the right of the screen or beyond it. Redirect to anything without East component (South, SouthWest, West, NorthWest, North).
+                        // Point is at/beyond the East edge but NOT beyond the South edge.
+
+
+                        // This point is either at the right of the screen or beyond it. Redirect to SouthWest, West, NorthWest,.
                         int[] DirectionArray = new int[] {
-                                (int)DirectionTrends.South,
                                 (int)DirectionTrends.SouthWest,
                                 (int)DirectionTrends.West,
-                                (int)DirectionTrends.NorthWest,
-                                (int)DirectionTrends.North
+                                (int)DirectionTrends.NorthWest
                             };
 
                         // Applying a randomly selected direction trend.
@@ -452,9 +480,12 @@ namespace WMP_Assignment4
                     {
                         // Check if point is on the western edge.
                         NextPosition = PreviousPoints.X - X_MovementIncrement;
-                        if (NextPosition <= CanvasMaxX)
+                        if (NextPosition <= CanvasMinX)
                         {
-                            // Point is on western edge, redirect to NorthEast, East, or SouthEast.
+                            // Point is at/beyond the West edge, but NOT the South edge.
+
+
+                            // Point is on/beyond Western edge. Redirect to NorthEast, East, or SouthEast.
                             int[] DirectionArray = new int[] {
                                 (int)DirectionTrends.NorthEast,
                                 (int)DirectionTrends.East,
@@ -471,73 +502,43 @@ namespace WMP_Assignment4
             }
             else if (DirectionTrend == (int)DirectionTrends.South)
             {
-                // Checks if the next increment will put the Y point beyond the southern edge of the canvas. Movement is to the south.
+                // Check if point will be at/beyond the South edge.
                 NextPosition = PreviousPoints.Y + Y_MovementIncrement;
                 if (NextPosition >= CanvasMaxY)
                 {
-                    // Check if X is also going to be over the edge, that would indicate the current position is the bottom right.
+                    // Point is at/beyond the South edge.
+
+
+                    // Check if point will be at/beyond the East edge.
                     NextPosition = PreviousPoints.X + X_MovementIncrement;
                     if (NextPosition >= CanvasMaxX)
                     {
-                        // Point will be at south eastern edge of screen, change its direction to NorthWest.
+                        // Point is at/beyond the SouthEastern edge.
+
+
+                        // Point will be at/beyond South eastern edge of screen, change its direction to NorthWest.
                         DirectionTrend = (int)DirectionTrends.NorthWest;
                         DirectionTrendChanged = true;
                     }
                     else
                     {
-                        // Check if X is going to be over the south western edge, that would indicate the current position is the bottom left.
+                        // Check if X is going to be over the South western edge, that would indicate the current position is the bottom left.
                         NextPosition = PreviousPoints.X - X_MovementIncrement;
                         if (NextPosition <= CanvasMinX)
                         {
+                            // Point is at/beyond the SouthWestern edge.
+
+
                             // Point is in south western corner. Redirect to NorthEast.
                             DirectionTrend = (int)DirectionTrends.NorthEast;
                             DirectionTrendChanged = true;
                         }
                         else
                         {
+                            // Point is beyond the South edge, but NOT East or West edges.
+
+
                             // Point will be at mid-Southern edge of screen, change its direction trend to North, NorthEast, NorthWest.
-                            int[] DirectionArray = new int[] {
-                                (int)DirectionTrends.North,
-                                (int)DirectionTrends.NorthEast,
-                                (int)DirectionTrends.NorthWest
-                            };
-
-                            DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
-                            DirectionTrendChanged = true;
-                        }
-                    }
-                }
-            }
-            else if (DirectionTrend == (int)DirectionTrends.SouthWest)
-            {
-                // Checks if the next increment will put the Y point beyond the southern edge of the canvas. Movement is to the bottom left.
-                NextPosition = PreviousPoints.Y + Y_MovementIncrement;
-
-                if (NextPosition >= CanvasMaxY)
-                {
-                    // Check if X is also going to be over the western edge, that would indicate the current position is the bottom left.
-                    NextPosition = PreviousPoints.X - X_MovementIncrement;
-                    if (NextPosition <= CanvasMinX)
-                    {
-                        // X component will be beyond the edge of the canvas. This is happening at same time as Y component being over the edge. 
-                        // This point is either in the bottom left of the screen or beyond it. Redirect to NorthEast.
-
-                        DirectionTrend = (int)DirectionTrends.NorthEast;
-                        DirectionTrendChanged = true;
-                    }
-                    else
-                    {
-                        // Check if X is also going to be over the eastern edge, that would indicate the current position is the bottom right.
-                        NextPosition = PreviousPoints.X + X_MovementIncrement;
-                        if(NextPosition >= CanvasMaxX)
-                        {
-                            // Point is going to be in / beyond south eastern corner. Redirect to NorthWest.
-                            DirectionTrend = (int)DirectionTrends.NorthWest;
-                            DirectionTrendChanged = true;
-                        }
-                        else
-                        {
-                            // Point will be at Southern edge of screen, change its direction trend to North, NorthEast, or NorthWest.
                             int[] DirectionArray = new int[] {
                                 (int)DirectionTrends.North,
                                 (int)DirectionTrends.NorthEast,
@@ -551,21 +552,129 @@ namespace WMP_Assignment4
                 }
                 else
                 {
-                    // Check if the X coord is close to the  western edge. Movement is to the bottom left.
+                    // Point is NOT at/beyond South edge.
+
+                    // Check if point will be at/beyond East edge.
+                    NextPosition = PreviousPoints.X + X_MovementIncrement;
+                    if (NextPosition >= CanvasMaxX)
+                    {
+                        // Point is at/beyond the East edge but NOT the South.
+
+
+                        // Redirect point to NorthWest, West, or SouthWest.
+                        int[] DirectionArray = new int[] {
+                                (int)DirectionTrends.NorthWest,
+                                (int)DirectionTrends.West,
+                                (int)DirectionTrends.SouthWest
+                            };
+
+                        DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
+                        DirectionTrendChanged = true;
+                    }
+                    else
+                    {
+                        // Check if point will be at/beyond the West edge.
+                        NextPosition = PreviousPoints.X - X_MovementIncrement;
+                        if (NextPosition <= CanvasMinX)
+                        {
+                            // Point is at/beyond the West edge, but NOT the South.
+
+
+                            // Redirect to NorthEast, East, or SouthEast
+                            int[] DirectionArray = new int[] {
+                                (int)DirectionTrends.NorthEast,
+                                (int)DirectionTrends.East,
+                                (int)DirectionTrends.SouthEast
+                            };
+
+                            DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
+                            DirectionTrendChanged = true;
+
+                        }
+                    }
+                }
+            }
+            else if (DirectionTrend == (int)DirectionTrends.SouthWest)
+            {
+                // Checks if the next increment will put the point beyond the Southern edge.
+                NextPosition = PreviousPoints.Y + Y_MovementIncrement;
+                if (NextPosition >= CanvasMaxY)
+                {
+                    // Point is at/beyond the South edge.
+
+
+                    // Check if point is at/beyond the West edge.
                     NextPosition = PreviousPoints.X - X_MovementIncrement;
                     if (NextPosition <= CanvasMinX)
                     {
-                        // X component will be beyond the edge of the canvas.  
-                        // This point is either at the left of the screen or beyond it. Redirect to NorthEast.
+                        // Point is at/beyond the SouthWest edge.
+
+
+                        // This point is either in the bottom left of the screen or beyond it. Redirect to NorthEast.
                         DirectionTrend = (int)DirectionTrends.NorthEast;
                         DirectionTrendChanged = true;
                     }
                     else
                     {
-                        // Check if the X coord is close to the eastern edge. Movement is to the bottom right.
+                        // Check if point is at/beyond the East edge.
                         NextPosition = PreviousPoints.X + X_MovementIncrement;
                         if(NextPosition >= CanvasMaxX)
                         {
+                            // Point is at/beyond the SouthEast edge.
+
+
+                            // Point is going to be at/beyond SouthEastern corner. Redirect to NorthWest.
+                            DirectionTrend = (int)DirectionTrends.NorthWest;
+                            DirectionTrendChanged = true;
+                        }
+                        else
+                        {
+                            // Point is beyond South edge but NOT East or West edges.
+
+
+                            // Point will be at South edge of screen, change its direction trend to North, NorthEast, or NorthWest.
+                            int[] DirectionArray = new int[] {
+                                (int)DirectionTrends.North,
+                                (int)DirectionTrends.NorthEast,
+                                (int)DirectionTrends.NorthWest
+                            };
+
+                            DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
+                            DirectionTrendChanged = true;
+                        }
+                    }
+                }
+                else
+                {
+                    // Point is NOT beyond South edge.
+
+
+                    // Check if the point is at/beyond the West edge.
+                    NextPosition = PreviousPoints.X - X_MovementIncrement;
+                    if (NextPosition <= CanvasMinX)
+                    {
+                        // Point is at/beyond the West edge, but NOT South edge.
+
+
+                        // This point is either at the left of the screen or beyond it. Redirect to NorthEast, East, or SouthEast.
+                        int[] DirectionArray = new int[] {
+                                (int)DirectionTrends.NorthEast,
+                                (int)DirectionTrends.East,
+                                (int)DirectionTrends.SouthEast
+                            };
+
+                        DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
+                        DirectionTrendChanged = true;
+                    }
+                    else
+                    {
+                        // Check if point is at/beyond the East edge.
+                        NextPosition = PreviousPoints.X + X_MovementIncrement;
+                        if(NextPosition >= CanvasMaxX)
+                        {
+                            // Point is at/beyond the Eastern edge, but NOT South edge.
+
+
                             // Point is on or beyond the eastern edge. NorthWest, West, or SouthWest.
                             int[] DirectionArray = new int[] {
                                 (int)DirectionTrends.NorthWest,
@@ -582,35 +691,46 @@ namespace WMP_Assignment4
             }
             else if (DirectionTrend == (int)DirectionTrends.West)
             {
-                // Movement is to the left. 
+                // Check if point is at/beyond the West edge. 
                 NextPosition = PreviousPoints.X - X_MovementIncrement;
                 if (NextPosition <= CanvasMinX)
                 {
-                    // Check if on or beyond northern edge.
+                    // Point is at/beyond the West edge.
+
+
+                    // Check if point is at/beyond the North edge.
                     NextPosition = PreviousPoints.Y - Y_MovementIncrement;
                     if(NextPosition <= CanvasMinY)
                     {
-                        // Point is on or beyond Northern edge at same time as beyond Western edge. Redirect to SouthEast.
+                        // Point is at/beyond the NorthWest edge.
+                        
+
+                        // Redirect to SouthEast.
                         DirectionTrend = (int)DirectionTrends.SouthEast;
                         DirectionTrendChanged = true;
                     }
                     else
                     {
-                        // Check if on or beyond southern edge.
+                        // Check if point is at/beyond the South edge.
                         NextPosition = PreviousPoints.Y + Y_MovementIncrement;
                         if(NextPosition >= CanvasMaxY)
                         {
-                            // Point is at or beyond south edge while also beyond western edge. Redirect to NorthEast.
+                            // Point is at/beyond the SouthWest edge.
+
+
+                            // Redirect to NorthEast.
                             DirectionTrend = (int)DirectionTrends.NorthEast;
                             DirectionTrendChanged = true;
                         }
                         else
                         {
-                            // Point is NOT beyond south or north edges, just western. Redirect to NorthEast, East, or SouthEast.
+                            // Point is at/beyond West edge but NOT beyond North or South edges.
+
+                            // Redirect to NorthEast, East, or SouthEast.
                             int[] DirectionArray = new int[] {
-                                (int)DirectionTrends.North,
                                 (int)DirectionTrends.NorthEast,
-                                (int)DirectionTrends.East
+                                (int)DirectionTrends.North,
+                                (int)DirectionTrends.SouthEast
                             };
 
                             DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
@@ -620,13 +740,16 @@ namespace WMP_Assignment4
                 }
                 else
                 {
-                    // The point is NOT beyond the western edge. Check if its current riding along one of the walls.
+                    // Point is NOT beyond West edge.
                     
-                    // Check if point is riding along / beyond northern edge.
+                    // Check if point is at/beyond North edge.
                     NextPosition = PreviousPoints.Y - Y_MovementIncrement;
                     if(NextPosition <= CanvasMinY)
                     {
-                        // Point will be on the northern edge. Redirect to SouthWest, South, or SouthEast.
+                        // Point is at/beyond the North edge, but NOT the West.
+
+
+                        // Redirect to SouthWest, South, or SouthEast.
                         int[] DirectionArray = new int[] {
                                 (int)DirectionTrends.SouthWest,
                                 (int)DirectionTrends.SouthEast,
@@ -638,15 +761,18 @@ namespace WMP_Assignment4
                     }
                     else
                     {
-                        // Check if point is riding along / beyond southern edge.
+                        // Check if point is at/beyond South edge.
                         NextPosition = PreviousPoints.Y + Y_MovementIncrement;
                         if (NextPosition >= CanvasMaxY)
                         {
-                            // Point will be on the southern edge. Redirect to NorthWest, North, or NorthEast.
+                            // Point is at/beyond the South edge, but NOT the West.
+
+
+                            // Point will be on the South edge. Redirect to NorthWest, North, or NorthEast.
                             int[] DirectionArray = new int[] {
                                 (int)DirectionTrends.NorthWest,
-                                (int)DirectionTrends.NorthEast,
-                                (int)DirectionTrends.North
+                                (int)DirectionTrends.North,
+                                (int)DirectionTrends.NorthEast
                             };
 
                             DirectionTrend = DirectionArray[RNG.Next(0, DirectionArray.Length)];
@@ -657,24 +783,25 @@ namespace WMP_Assignment4
             }
             else if (DirectionTrend == (int)DirectionTrends.NorthWest)
             {
-                // Movement is to the top left. Check if position would be beyond northern edge of canvas.
+                // Check if point is at/beyond North edge.
                 NextPosition = PreviousPoints.Y - Y_MovementIncrement;
                 if (NextPosition <= CanvasMinY)
                 {
-                    // Point is at / beyond the Northern edge.
+                    // Point is at / beyond the North edge.
 
-                    // Check if X is going to be at/over the Western edge.
+                    // Check if point is at/beyond the West edge.
                     NextPosition = PreviousPoints.X - X_MovementIncrement;
                     if (NextPosition <= CanvasMinX)
                     {
                         // Point is at/beyond NorthWest edge.
 
-                        // This point is either in the top left of the screen or beyond it. Redirect to SouthEast.
+                        // Redirect to SouthEast.
                         DirectionTrend = (int)DirectionTrends.SouthEast;
                         DirectionTrendChanged = true;
                     }
                     else
                     {
+
                         // Point will be at Northern edge. Redirect to SouthWest, South, or SouthEast.
                         int[] DirectionArray = new int[] {
                                 (int)DirectionTrends.South,
@@ -708,6 +835,10 @@ namespace WMP_Assignment4
                         DirectionTrendChanged = true;
                     }
                 }
+            }
+            else
+            {
+                //Task.Run(() => MessageBox.Show("Error. Direction Trend = " + DirectionTrend.ToString()));
             }
 
             // Applying the new direction trend to the appropriate point.
@@ -754,26 +885,176 @@ namespace WMP_Assignment4
         private void RandomizeSpeed(string WhichPoint)
         {
             Random RNG = new Random();
+            int[] Speeds = new int[]
+            {
+                (int)LineSpeeds.Default,
+                (int)LineSpeeds.Low,
+                (int)LineSpeeds.Medium,
+                (int)LineSpeeds.High
+            };
 
             if(WhichPoint == "A")
             {
-                PointA_SpeedOfX = RNG.Next((int)LineSpeeds.Default, (int)LineSpeeds.High);
-                PointA_SpeedOfY = RNG.Next((int)LineSpeeds.Default, (int)LineSpeeds.High);
+                PointA_SpeedOfX = Speeds[RNG.Next(0, Speeds.Length)];
+                PointA_SpeedOfY = Speeds[RNG.Next(0, Speeds.Length)];
             }
             else if(WhichPoint == "B")
             {
-                PointB_SpeedOfX = RNG.Next((int)LineSpeeds.Default, (int)LineSpeeds.High);
-                PointB_SpeedOfY = RNG.Next((int)LineSpeeds.Default, (int)LineSpeeds.High);
+                PointB_SpeedOfX = Speeds[RNG.Next(0, Speeds.Length)];
+                PointB_SpeedOfY = Speeds[RNG.Next(0, Speeds.Length)];
             }
+        }
+
+        private PointInfo MovePointNorth(String WhichPoint)
+        {
+            PointInfo Result = new PointInfo();
+
+            if (WhichPoint == "A")
+            {
+                Result.Y = PreviousPointA.Y - PointA_SpeedOfY;
+                Result.X = PreviousPointA.X;
+            }
+            else if(WhichPoint == "B")
+            {
+                Result.Y = PreviousPointB.Y - PointB_SpeedOfY;
+                Result.X = PreviousPointB.X;
+            }
+
+            return Result;
+        }
+
+        private PointInfo MovePointNorthEast(String WhichPoint)
+        {
+
+            PointInfo Result = new PointInfo();
+
+            if (WhichPoint == "A")
+            {
+                Result.Y = PreviousPointA.Y - PointA_SpeedOfY;
+                Result.X = PreviousPointA.X + PointA_SpeedOfX;
+            }
+            else if (WhichPoint == "B")
+            {
+                Result.Y = PreviousPointB.Y - PointB_SpeedOfY;
+                Result.X = PreviousPointB.X + PointB_SpeedOfX;
+            }
+
+            return Result;
+        }
+
+        private PointInfo MovePointEast(String WhichPoint)
+        {
+            PointInfo Result = new PointInfo();
+
+            if (WhichPoint == "A")
+            {
+                Result.Y = PreviousPointA.Y;
+                Result.X = PreviousPointA.X + PointA_SpeedOfX;
+            }
+            else if (WhichPoint == "B")
+            {
+                Result.Y = PreviousPointB.Y;
+                Result.X = PreviousPointB.X + PointB_SpeedOfX;
+            }
+
+            return Result;
+        }
+
+        private PointInfo MovePointSouthEast(String WhichPoint)
+        {
+            PointInfo Result = new PointInfo();
+
+            if (WhichPoint == "A")
+            {
+                Result.Y = PreviousPointA.Y + PointA_SpeedOfY;
+                Result.X = PreviousPointA.X + PointA_SpeedOfX;
+            }
+            else if (WhichPoint == "B")
+            {
+                Result.Y = PreviousPointB.Y + PointB_SpeedOfY;
+                Result.X = PreviousPointB.X + PointB_SpeedOfX;
+            }
+
+            return Result;
+        }
+
+        private PointInfo MovePointSouth(String WhichPoint)
+        {
+            PointInfo Result = new PointInfo();
+
+            if (WhichPoint == "A")
+            {
+                Result.Y = PreviousPointA.Y + PointA_SpeedOfY;
+                Result.X = PreviousPointA.X;
+            }
+            else if (WhichPoint == "B")
+            {
+                Result.Y = PreviousPointB.Y + PointB_SpeedOfY;
+                Result.X = PreviousPointB.X;
+            }
+
+            return Result;
+        }
+
+        private PointInfo MovePointSouthWest(String WhichPoint)
+        {
+            PointInfo Result = new PointInfo();
+
+            if (WhichPoint == "A")
+            {
+                Result.Y = PreviousPointA.Y + PointA_SpeedOfY;
+                Result.X = PreviousPointA.X - PointA_SpeedOfX;
+            }
+            else if (WhichPoint == "B")
+            {
+                Result.Y = PreviousPointB.Y + PointB_SpeedOfY;
+                Result.X = PreviousPointB.X - PointB_SpeedOfX;
+            }
+
+            return Result;
+        }
+
+        private PointInfo MovePointWest(String WhichPoint)
+        {
+            PointInfo Result = new PointInfo();
+
+            if (WhichPoint == "A")
+            {
+                Result.Y = PreviousPointA.Y;
+                Result.X = PreviousPointA.X - PointA_SpeedOfX;
+            }
+            else if (WhichPoint == "B")
+            {
+                Result.Y = PreviousPointB.Y;
+                Result.X = PreviousPointB.X - PointB_SpeedOfX;
+            }
+
+            return Result;
+        }
+
+        private PointInfo MovePointNorthWest(String WhichPoint)
+        {
+            PointInfo Result = new PointInfo();
+
+            if (WhichPoint == "A")
+            {
+                Result.Y = PreviousPointA.Y - PointA_SpeedOfY;
+                Result.X = PreviousPointA.X - PointA_SpeedOfX;
+            }
+            else if (WhichPoint == "B")
+            {
+                Result.Y = PreviousPointB.Y - PointB_SpeedOfY;
+                Result.X = PreviousPointB.X - PointB_SpeedOfX;
+            }
+
+            return Result;
         }
 
         private void ProcessMovement(Line MyLine)
         {
-            double PointA_Xpos = 0;
-            double PointA_Ypos = 0;
+            PointInfo NewPointA = new PointInfo();
+            PointInfo NewPointB = new PointInfo();
 
-            double PointB_Xpos = 0;
-            double PointB_Ypos = 0;
 
             // PointADirectionTrend Section:
 
@@ -785,39 +1066,35 @@ namespace WMP_Assignment4
             
             if (PointADirectionTrend == (int)DirectionTrends.North)
             {
-                PointA_Ypos = PreviousPointA.Y - PointA_SpeedOfY;
+                NewPointA = MovePointNorth("A");
             }
             else if (PointADirectionTrend == (int)DirectionTrends.NorthEast)
             {
-                PointA_Xpos = PreviousPointA.X + PointA_SpeedOfX;
-                PointA_Ypos = PreviousPointA.Y - PointA_SpeedOfY;
+                NewPointA = MovePointNorthEast("A");
             }
             else if (PointADirectionTrend == (int)DirectionTrends.East)
             {
-                PointA_Xpos = PreviousPointA.X + PointA_SpeedOfX;
+                NewPointA = MovePointEast("A");
             }
             else if (PointADirectionTrend == (int)DirectionTrends.SouthEast)
             {
-                PointA_Xpos = PreviousPointA.X + PointA_SpeedOfX;
-                PointA_Ypos = PreviousPointA.Y + PointA_SpeedOfY;
+                NewPointA = MovePointSouthEast("A");
             }
             else if (PointADirectionTrend == (int)DirectionTrends.South)
             {
-                PointA_Ypos = PreviousPointA.Y + PointA_SpeedOfY;
+                NewPointA = MovePointSouth("A");
             }
             else if (PointADirectionTrend == (int)DirectionTrends.SouthWest)
             {
-                PointA_Xpos = PreviousPointA.X - PointA_SpeedOfX;
-                PointA_Ypos = PreviousPointA.Y + PointA_SpeedOfY;
+                NewPointA = MovePointSouthWest("A");
             }
             else if (PointADirectionTrend == (int)DirectionTrends.West)
             {
-                PointA_Xpos = PreviousPointA.X - PointA_SpeedOfX;
+                NewPointA = MovePointWest("A");
             }
             else if (PointADirectionTrend == (int)DirectionTrends.NorthWest)
             {
-                PointA_Xpos = PreviousPointA.X - PointA_SpeedOfX;
-                PointA_Ypos = PreviousPointA.Y - PointA_SpeedOfY;
+                NewPointA = MovePointNorthWest("A");
             }
 
 
@@ -830,58 +1107,71 @@ namespace WMP_Assignment4
             
             if(PointBDirectionTrend == (int)DirectionTrends.North)
             {
-                PointB_Ypos = PreviousPointB.Y - PointB_SpeedOfY;
+                NewPointB = MovePointNorth("B");
             }
             else if (PointBDirectionTrend == (int)DirectionTrends.NorthEast)
             {
-                PointB_Xpos = PreviousPointB.X + PointB_SpeedOfX;
-                PointB_Ypos = PreviousPointB.Y - PointB_SpeedOfY;
+                NewPointB = MovePointNorthEast("B");
             }
             else if (PointBDirectionTrend == (int)DirectionTrends.East)
             {
-                PointB_Xpos = PreviousPointB.X + PointB_SpeedOfX;
+                NewPointB = MovePointEast("B");
             }
             else if (PointBDirectionTrend == (int)DirectionTrends.SouthEast)
             {
-                PointB_Xpos = PreviousPointB.X + PointB_SpeedOfX;
-                PointB_Ypos = PreviousPointB.Y + PointB_SpeedOfY;
+                NewPointB = MovePointSouthEast("B");
             }
             else if (PointBDirectionTrend == (int)DirectionTrends.South)
             {
-                PointB_Ypos = PreviousPointB.Y + PointB_SpeedOfY;
+                NewPointB = MovePointSouth("B");
             }
             else if (PointBDirectionTrend == (int)DirectionTrends.SouthWest)
             {
-                PointB_Xpos = PreviousPointB.X - PointB_SpeedOfX;
-                PointB_Ypos = PreviousPointB.Y + PointB_SpeedOfY;
+                NewPointB = MovePointSouthWest("B");
             }
             else if (PointBDirectionTrend == (int)DirectionTrends.West)
             {
-                PointB_Xpos = PreviousPointB.X - PointB_SpeedOfX;
+                NewPointB = MovePointWest("B");
             }
             else if (PointBDirectionTrend == (int)DirectionTrends.NorthWest)
             {
-                PointB_Xpos = PreviousPointB.X - PointB_SpeedOfX;
-                PointB_Ypos = PreviousPointB.Y - PointB_SpeedOfY;
+                NewPointB = MovePointNorthWest("B");
             }
 
-            PointA_Xpos = Math.Round(PointA_Xpos, 0);
-            PointA_Ypos = Math.Round(PointA_Ypos, 0);
-            PointB_Xpos = Math.Round(PointB_Xpos, 0);
-            PointB_Ypos = Math.Round(PointB_Ypos, 0);
+            NewPointA.X = Math.Round(NewPointA.X, 0);
+            NewPointA.Y = Math.Round(NewPointA.Y, 0);
+            NewPointB.X = Math.Round(NewPointB.X, 0);
+            NewPointB.Y = Math.Round(NewPointB.Y, 0);
 
-            MyLine.X1 = PointA_Xpos;
-            MyLine.Y1 = PointA_Ypos;
+            MyLine.X1 = NewPointA.X;
+            MyLine.Y1 = NewPointA.Y;
 
-            MyLine.X2 = PointB_Xpos;
-            MyLine.Y2 = PointB_Ypos;
+            MyLine.X2 = NewPointB.X;
+            MyLine.Y2 = NewPointB.Y;
+
+            if(NewPointA.X > ((double)LineSpeeds.High + PreviousPointA.X) || NewPointA.X < ((double)LineSpeeds.High - PreviousPointA.X))
+            {
+                Task.Run(() => 
+                {
+                    MessageBox.Show("Detected exceptional increase/decrease in X pos.");
+                });
+            }
+
+            if (NewPointA.Y > ((double)LineSpeeds.High + PreviousPointA.Y) || NewPointA.Y < ((double)LineSpeeds.High - PreviousPointA.Y))
+            {
+                Task.Run(() =>
+                {
+                    MessageBox.Show("Detected exceptional increase/decrease in Y pos.");
+                });
+            }
+
 
             // Recording the new values as the previous points.
-            PreviousPointA.X = PointA_Xpos;
-            PreviousPointA.Y = PointA_Ypos;
+            PreviousPointA.X = NewPointA.X;
+            PreviousPointA.Y = NewPointA.Y;
 
-            PreviousPointB.X = PointB_Xpos;
-            PreviousPointB.Y = PointB_Ypos;
+            PreviousPointB.X = NewPointB.X;
+            PreviousPointB.Y = NewPointB.Y;
         }
     }
 }
