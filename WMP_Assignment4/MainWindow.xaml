@@ -5,9 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:self="clr-namespace:WMP_Assignment4"
         mc:Ignorable="d"
-        Title="MainWindow"
-        Height="450"
-        MinHeight="450"
+        Title="Mschatz WMP_Assignment4"
+        Height="500"
+        MinHeight="500"
         Width="600"
         MinWidth="600"
         >
@@ -18,6 +18,7 @@
     <Window.InputBindings>
         <KeyBinding Command="Close" Gesture="Ctrl+X"/>
     </Window.InputBindings>
+    
     <DockPanel>
         <Menu DockPanel.Dock="Top">
 
@@ -32,56 +33,48 @@
 
         </Menu>
         <StatusBar DockPanel.Dock="Bottom">
+            
             <StatusBarItem>
                 <Label Name="lblActiveThreads">Active Threads:</Label>                    
             </StatusBarItem>
+            
             <StatusBarItem>
                 <TextBlock Name="tbThreadsActive">0</TextBlock>
             </StatusBarItem>
+            
             <StatusBarItem>
-                <Label Name="lblErrorMessages">Error Messages:
-                    </Label>
+                <Label Name="lblErrorMessages"></Label>
             </StatusBarItem>
-
+            
             <StatusBarItem>
                 <TextBlock Name="tbErrorMessages"></TextBlock>
             </StatusBarItem>
+            
         </StatusBar>
-        <Canvas Name="MainCanvas" Panel.ZIndex="1">
+        <Canvas Name="MainCanvas" Panel.ZIndex="1" SizeChanged="Canvas_SizeChanged">
 
-
+             <!--This section creates a visible border that the lines will bounce within. /-->
             <Line X1="10" Y1="10" X2="10" Y2="359" Stroke="Black"></Line>
             <Line X1="10" Y1="10" X2="582" Y2="10" Stroke="Black"></Line>
             <Line X1="582" Y1="10" X2="582" Y2="359" Stroke="Black"></Line>
             <Line X1="582" Y1="359" X2="10" Y2="359" Stroke="Black"></Line>
+            
+            <Label Canvas.Left="11" Canvas.Bottom="30" Width="70">Line Speed:</Label>
+            <Label Name="SpeedSliderValueLabel" Canvas.Left="77" Canvas.Bottom="30">Normal</Label>
+            <Slider Name="SpeedSlider" Value="3" Maximum="6" Canvas.Left="11" Canvas.Bottom="11" Width="110" IsSnapToTickEnabled="True" TickPlacement="BottomRight" Panel.ZIndex="2" ValueChanged="SpeedSlider_ValueChanged"  ToolTip="Changes the speed of the line movement."/>
 
-            <Button Canvas.Left="120" Canvas.Bottom="10" Width="60" Panel.ZIndex="2" ToolTip="Click to spawn another line." Click="StartButton_Click">Start</Button>
-            <Button Canvas.Left="190" Canvas.Bottom="10" Width="60" Panel.ZIndex="2" ToolTip="Click to stop all lines." Click="StopButton_Click">Stop</Button>
+            <Button Canvas.Left="120" Canvas.Bottom="11" Width="60" Panel.ZIndex="2" ToolTip="Click to spawn another line." Click="StartButton_Click">Start</Button>
+            <Button Canvas.Left="190" Canvas.Bottom="11" Width="60" Panel.ZIndex="2" ToolTip="Click to stop all lines." Click="StopButton_Click">Stop</Button>
+            
+            <Label Canvas.Left="250" Canvas.Bottom="30">Tail Length:</Label>
+            <Label Name="TailLengthLabel" Content="{Binding ElementName=TailLengthSlider, Path=Value, UpdateSourceTrigger=PropertyChanged}" Canvas.Left="320" Canvas.Bottom="30" Width="25"></Label>
+            <Slider Name="TailLengthSlider" Value="1" Maximum="50" Canvas.Left="260" TickPlacement="None" IsSnapToTickEnabled="True"  Canvas.Bottom="11" Width="80" Panel.ZIndex="2" ValueChanged="TailLengthSlider_ValueChanged" ToolTip="Changes the length of time tails persist."/>
 
-            <Slider Name="TailLengthSlider" Maximum="50" Canvas.Left="260" TickPlacement="BottomRight" TickFrequency="5" Canvas.Bottom="10" Width="80" Panel.ZIndex="2" ValueChanged="TailLengthSlider_ValueChanged" ToolTip="Changes the length of time tails persist."/>
-
-            <Button Canvas.Left="350" Canvas.Bottom="10" Width="60" Panel.ZIndex="2" ToolTip="Click to pause all line movement." Click="PauseButton_Click">Pause</Button>
-            <Button Canvas.Left="420" Canvas.Bottom="10" Width="60" Panel.ZIndex="2" ToolTip="Click to resume all line movement." Click="ResumeButton_Click">Resume</Button>
+            <Button Canvas.Left="350" Canvas.Bottom="11" Width="60" Panel.ZIndex="2" ToolTip="Click to pause all line movement." Click="PauseButton_Click">Pause</Button>
+            <Button Canvas.Left="420" Canvas.Bottom="11" Width="60" Panel.ZIndex="2" ToolTip="Click to resume all line movement." Click="ResumeButton_Click">Resume</Button>
 
             <Canvas Name="LineCanvas" Panel.ZIndex="1"/>
         </Canvas>
-        <!--<Canvas Name="MainCanvas" >
-            
-            
-            <Line X1="10" Y1="10" X2="10" Y2="359" Stroke="Black"></Line>
-            <Line X1="10" Y1="10" X2="582" Y2="10" Stroke="Black"></Line>
-            <Line X1="582" Y1="10" X2="582" Y2="359" Stroke="Black"></Line>
-            <Line X1="582" Y1="359" X2="10" Y2="359" Stroke="Black"></Line>
-
-            <Button Canvas.Left="120" Canvas.Bottom="10" Width="60" Panel.ZIndex="1" ToolTip="Click to spawn another line." Click="StartButton_Click">Start</Button>
-            <Button Canvas.Left="190" Canvas.Bottom="10" Width="60" Panel.ZIndex="1" ToolTip="Click to stop all lines." Click="StopButton_Click">Stop</Button>
-
-            <Slider Name="TailLengthSlider" Maximum="50" Canvas.Left="260" TickPlacement="BottomRight" TickFrequency="5" Canvas.Bottom="10" Width="80" Panel.ZIndex="1" ValueChanged="TailLengthSlider_ValueChanged" ToolTip="Changes the length of time tails persist."/>
-
-            <Button Canvas.Left="350" Canvas.Bottom="10" Width="60" Panel.ZIndex="1" ToolTip="Click to pause all line movement." Click="PauseButton_Click">Pause</Button>
-            <Button Canvas.Left="420" Canvas.Bottom="10" Width="60" Panel.ZIndex="1" ToolTip="Click to resume all line movement." Click="ResumeButton_Click">Resume</Button>
-
-        </Canvas>-->
 
     </DockPanel>
 </Window>

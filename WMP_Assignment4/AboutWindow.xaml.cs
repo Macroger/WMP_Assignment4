@@ -1,20 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/*
+**  File Name:      AboutWindow.xaml.cs
+**	Project Name:	WMP_Assignment4
+**	Author:         Matthew G. Schatz
+**  Date:           October 17, 2019
+**	Description:	This file contains the source code for the AboutWindow used in the WMP_Assignment4 project.
+*/
+
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace WMP_Assignment4
 {
-    /*
+     /*
      **	Class Name:     AboutWindow		
      **	Description:    This class is designed to create an About status window. Nothing fancy here, just a window with some status info and a button to close it.
      */

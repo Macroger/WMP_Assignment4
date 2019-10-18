@@ -1,41 +1,57 @@
-﻿
+﻿/*
+**  File Name:      LineGeneratorManager.cs
+**	Project Name:	WMP_Assignment4
+**	Author:         Matthew G. Schatz
+**  Date:           October 17, 2019
+**	Description:	This fils contains the source code for the LineGeneratorManager class. This class is a manager for the LineGenerator class. It will spawn tasks that use LineGenerator to help create lines which will be drawn on
+**                  the canvas referenced in ActiveCanvas.
+*/
+
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web.UI;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using System.Windows.Threading;
 
 namespace WMP_Assignment4
 {
     class LineGeneratorManager
     {
-        private volatile int _TailLength = 5;
+        // This int is used to determine the length of the trails. It is marked volatile to force any changes to it to be atomic (not allowed to be interrupted by the operating system scheduler). This makes it thread-safe.
+        private volatile int _TailLength = 1;
 
-        private volatile int _SpawnTimeInMilliSeconds = 150;
+        // This int is used to determine the time span between iterations of the line generation thread. This determines how fast the lines appear on the screen, with lower times equaling faster line generation.
+        private volatile int _SpawnTimeInMilliSeconds = 75;
 
+        // This bool is used to stop the threads and allow them to complete / end.
         private volatile bool _StopFlag = false;
 
+        // This bool is used to pause the tasks in their work. Resuming is possible by toggling the flag back to false.
         private volatile bool _PauseFlag = false;
 
+        // This list is used to hold references to the tasks as they run.
         private List<Task> TaskPool = new List<Task>();
 
+        // This object is used to act as a lock object, protecting a critical region that may come into contention from the various tasks running.
         private readonly object StopCommandLockObj = new object();
 
+        // This object is used to act as a lock object, protecting a critical region that may come into contention from the various tasks running.
         private readonly object PauseCommandLockObj = new object();
 
+        // This object is used to act as a lock object, protecting a critical region that may come into contention from the various tasks running.
         private readonly object TailPersistenceLockObj = new object();
 
+        // This object is used to act as a lock object, protecting a critical region that may come into contention from the various tasks running.
+        private readonly object SpawnTimeLockObj = new object();
+
+        // This variable is used to hold a reference to the canvas that the lines are being drawn on.
         private Canvas ActiveCanvas;
 
+        // This list is used to hold a variety of colours, which is used to select a random colour for each thread spawned.
         private List<Brush> myBrushList = new List<Brush>()
         {
-            Brushes.Transparent,
             Brushes.Red,
             Brushes.Green,
             Brushes.MediumOrchid,
@@ -50,6 +66,7 @@ namespace WMP_Assignment4
             Brushes.DarkOrange
         };
 
+        // Public property connected to _StopFlag. Uses a lock object.
         public bool Stop
         {
             get
@@ -65,6 +82,7 @@ namespace WMP_Assignment4
             }
         }
 
+        // Public property connected to _PauseFlag. Uses a lock object.
         public bool Pause
         {
             get
@@ -80,6 +98,7 @@ namespace WMP_Assignment4
             }
         }
 
+        // Public property connected to _TailLength. Uses a lock object.
         public int TailLength
         {
             get
@@ -95,6 +114,7 @@ namespace WMP_Assignment4
             }
         }
 
+        // Public property connected to _SpawnTimeInMilliSeconds. Has basic validation and uses a lock object.
         public int SpawnTimeInMilliSeconds
         {
             get 
@@ -103,47 +123,70 @@ namespace WMP_Assignment4
             }
             set 
             {
-                if (value < 1500 && value > 0)
+                lock(SpawnTimeLockObj)
                 {
-                    _SpawnTimeInMilliSeconds = value;
+                    if (value < 1500 && value > 0)
+                    {
+                        _SpawnTimeInMilliSeconds = value;
+                    }
                 }
+                
             }
         }
 
-
+        /*
+        **	Method Name:	LineGeneratorManager()
+        **	Parameters:		Canvas IncommingCanvas: This entity holds a reference to the canvas being used to draw lines.
+        **	Return Values:	None. 
+        **	Description:	Basic constructor, passes a reference of the canvas to draw to.
+        */
         public LineGeneratorManager(Canvas IncommingCanvas)
         {
             ActiveCanvas = IncommingCanvas;
         }
 
-
-        public void CloseAllThreads()
+        /*
+        **	Method Name:	ShutdownAllTasks()
+        **	Parameters:		None.
+        **	Return Values:	Void.
+        **	Description:	This method is used to cause all the worker tasks to end/close. It checks to see if each has closed and if not makes a list of "non responsive tasks" which will be iterated through and forced to close.
+        */
+        public void ShutdownAllTasks()
         {
             _StopFlag = true;
 
-            List<Task> NonRespondingTasksList = new List<Task>();
-
             foreach(Task t in TaskPool)
             {
-                // Wait for the equivalent of one cycle for the thread to end, 
-                if(t.Wait(_SpawnTimeInMilliSeconds) == false)
-                {
-                    NonRespondingTasksList.Add(t);
-                }
-            }
-            
-            // For any tasks that refuse to shut down properly a forced shut down is in order.
-            for(int i = 0; i < NonRespondingTasksList.Count; i++)
-            {
-                NonRespondingTasksList[i].Dispose();
+                t.Wait(_SpawnTimeInMilliSeconds + 10);
             }
 
             // Since all tasks have now shut down TaskPool can be cleared.
             TaskPool.Clear();
         }
 
+        /*
+        **	Method Name:	HowManyThreadSpawnersActive()
+        **	Parameters:		None.
+        **	Return Values:	int: This method returns an int representing how many task spawners are currently active.
+        **	Description:	This method returns an int representing how many task spawners are currently active.
+        */
+        public int HowManyThreadSpawnersActive()
+        {
+            return TaskPool.Count;
+        }
 
-        public void StartThreadSpawner()
+        
+        /*
+        **	Method Name:	StartTaskSpawner()
+        **	Parameters:		None.
+        **	Return Values:	Void.
+        **	Description:	This method is used to spawn (start/create) a worker task that will continue to loop until the _StopFlag is changed to true.
+        **                  The task can be paused with the _PauseFlag. When operating in active mode it constantly generates lines and passes them to the UI thread's dispatcher.
+        **                  The task will allow lines to remain on the screen according to the _TailLength variable, lines beyond this value will be removed.
+        **                  After the line has been drawn the task sleeps for a time determined by the value of _SleepTimeInMilliSeconds. 
+        **                  Also, a reference to the task will be placed into the list called TaskPool, so it can be referenced later.
+        */
+        public void StartTaskSpawner()
         {
             LineGenerator myLineGenerator = new LineGenerator();
             Brush ThreadColour = GetRandomBrushColour();
@@ -157,7 +200,7 @@ namespace WMP_Assignment4
                 {
                     while(_PauseFlag == true)
                     {
-                        Thread.Sleep(150);
+                        Thread.Sleep(_SpawnTimeInMilliSeconds);
                     }
 
                     // I am putting this check in to ensure that no more lines are drawn once the stop flag has tripped.

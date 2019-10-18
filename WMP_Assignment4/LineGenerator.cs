@@ -1,12 +1,25 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿/*
+**  File Name:      LineGenerator.cs
+**	Project Name:	WMP_Assignment4
+**	Author:         Matthew G. Schatz
+**  Date:           October 17, 2019
+**	Description:	This file holds the source code for the LineGenerator class. This class is designed to represnt a object that generates the coordinates for Lines
+**                  to be drawn on the screen repeatedly. It has logic to contain the coordinates within a shape that is square (dimensions are irrelevant as long as its a square).
+**                  It will generate one set of coordinates for a line per call to CalculateNewLinePoints().
+*/
+
+using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Shapes;
 
 namespace WMP_Assignment4
 {
     class LineGenerator
     {
+        // Data members:
+
+        // This struct is used to hold a pair of coordinates for a single point. (X, and Y coords).
         private struct PointInfo
         {
             public double X;
@@ -14,6 +27,7 @@ namespace WMP_Assignment4
 
         };
 
+        // This enum is used to house several possible line speeds. Their values represent how many pixels the line moves per increment.
         private enum LineSpeeds
         {
             Default = 1,
@@ -22,6 +36,7 @@ namespace WMP_Assignment4
             High = 10
         }
 
+        // This enum is used to house the directions that a point can be trending in. 
         private enum DirectionTrends
         {
             None = -1,
@@ -35,18 +50,22 @@ namespace WMP_Assignment4
             NorthWest            
         }
 
+        // These structs of PointInfo type are used to hold the X and Y coords for each point of a line.
         PointInfo PreviousPointA = new PointInfo();
         PointInfo PreviousPointB = new PointInfo();
-        
+
+        // This bool is used to determine if this is the first time this class has been called since construction occurred.
         private bool FirstLine = true;
+
+        private Canvas ActiveCanvas;
 
         // These values were determined by observing the values of height and width of the canvas element. I used the properties menu of visual studio to do this in conjunction with the XAML designer/viewer.
         // *WARNING* If the window size is changed these values will need to be adjusted.
         // Note: It would be better to link these values to the active canvas so the values could just be read in - however I tried this and it led to some irregularities in edge calculations. Developer beware!
-        public double CanvasMaxX = 582;
-        public double CanvasMaxY = 359;
-        public double CanvasMinX = 10;
-        public double CanvasMinY = 10;
+        private double CanvasMaxX = 582;
+        private double CanvasMaxY = 359;
+        private double CanvasMinX = 10;
+        private double CanvasMinY = 10;
         
         // This value is connected with the enum LineSpeeds, as the values contained there represent the valid values for this private int named LineSpeed. 
         // This value represents the speed (or rather, increment value) for the line movement.
@@ -59,6 +78,14 @@ namespace WMP_Assignment4
         public int PointADirectionTrend = (int)DirectionTrends.None;
         public int PointBDirectionTrend = (int)DirectionTrends.None;
 
+        // Method(s):
+        
+        /*
+        **	Method Name:	GenerateRandomStartingPoints()
+        **	Parameters:		Line MyLine: This entity holds a reference to the Line that is currently being created.
+        **	Return Values:	Void.
+        **	Description:	This method takes a reference to a Line variable and gives it random positions for its A and B points. The values are recorded afterwards so the line can be tracked accurately.
+        */
         private void GenerateRandomStartingPoints(Line MyLine)
         {
             Random RNG = new Random();
@@ -86,20 +113,33 @@ namespace WMP_Assignment4
             PreviousPointB.Y = MyLine.Y2;
 
         }
-
+        /*
+        **	Method Name:	DetermineDirectionTrend
+        **	Parameters:		string WhichPoint: This string is used to determine which Point of the line is being worked on (either A, or B).
+        **	Return Values:	bool: This method returns a bool to indicate whether a direction was changed or not. True indicates direction trend was changed, false indicates not.
+        **	Description:	This method uses a very long series of if statements to determine if the individual point is near any of the edges of the canvas. 
+        **                  The way I organized it there are 8 possible movement directions North, NorthEast, East, SouthEast, South, SouthWest, and NorthWest.'
+        **                  This method checks to see if the point is going to be at or beyond a wall and chooses an appropriate direction to change to.
+        */
         private bool DetermineDirectionTrend(string WhichPoint)
         {
+            // This struct is used to hold the info about the revelent points previous location.
             PointInfo PreviousPoints = new PointInfo();
 
+            // This variable is used to hold the points direction trend, also part of the generalizing of the code so I don't have to write the same logic twice (once for Point A, once for Point B).
             int DirectionTrend = 0;
 
+            // This bool indicates whether the point bounced off a wall.
             bool DirectionTrendChanged = false;
 
+            // This value is used to hold the value of the points position, after the next increment has been added to it.
             double NextPosition = 0;
 
+            // These values are used to hold the points values, to help with generalizing the code.
             double X_MovementIncrement = 0;
             double Y_MovementIncrement = 0;
 
+            // Setting up a Random object to be used for some of the decision making about which direction to head next.
             Random RNG = new Random();
 
             // Temporarily generalizing the points so I only have to write one set of logic conditions.
@@ -168,8 +208,6 @@ namespace WMP_Assignment4
                             DirectionTrendChanged = true;
                         }
                     }
-
-                    
                 }
                 else
                 {
@@ -836,10 +874,6 @@ namespace WMP_Assignment4
                     }
                 }
             }
-            else
-            {
-                //Task.Run(() => MessageBox.Show("Error. Direction Trend = " + DirectionTrend.ToString()));
-            }
 
             // Applying the new direction trend to the appropriate point.
             if (WhichPoint == "A")
@@ -854,6 +888,13 @@ namespace WMP_Assignment4
             return DirectionTrendChanged;
         }
 
+        /*
+        **	Method Name:	CalculateNewLinePoints()
+        **	Parameters:		Line MyLine: This entity provides a reference to the Line that were tracking / building.
+        **	Return Values:	Void.
+        **	Description:	This method gives brand new incoming Lines starting points and directions.
+        **                  If FirstLine is NOT true it processes the next move and applies the new values to MyLine. 
+        */
         public void CalculateNewLinePoints(Line MyLine)
         {
             if(FirstLine == true)
@@ -881,7 +922,12 @@ namespace WMP_Assignment4
                 ProcessMovement(MyLine);
             }
         }
-
+        /*
+        **	Method Name:	RandomizeSpeed()
+        **	Parameters:		string WhichPoint: This string is used to determine which Point of the line is being worked on (either A, or B).
+        **	Return Values:	Void.
+        **	Description:	This method chooses a speed from a list of available options at random and applies it to the SpeedOfX and SpeedOfY variables for each point.
+        */
         private void RandomizeSpeed(string WhichPoint)
         {
             Random RNG = new Random();
@@ -905,6 +951,12 @@ namespace WMP_Assignment4
             }
         }
 
+        /*
+        **	Method Name:	MovePointNorth()
+        **	Parameters:		string WhichPoint: This string is used to determine which Point of the line is being worked on (either A, or B).
+        **	Return Values:	PointInfo: This method returns a filled out PointInfo struct containing the new X and Y coords.
+        **	Description:	This method is used to generate a pair of new X and Y coordinates for a point, depending on the value fed in as WhichPoint.
+        */
         private PointInfo MovePointNorth(String WhichPoint)
         {
             PointInfo Result = new PointInfo();
@@ -923,6 +975,12 @@ namespace WMP_Assignment4
             return Result;
         }
 
+        /*
+        **	Method Name:	MovePointNorthEast()
+        **	Parameters:		string WhichPoint: This string is used to determine which Point of the line is being worked on (either A, or B).
+        **	Return Values:	PointInfo: This method returns a filled out PointInfo struct containing the new X and Y coords.
+        **	Description:	This method is used to generate a pair of new X and Y coordinates for a point, depending on the value fed in as WhichPoint.
+        */
         private PointInfo MovePointNorthEast(String WhichPoint)
         {
 
@@ -942,6 +1000,12 @@ namespace WMP_Assignment4
             return Result;
         }
 
+        /*
+        **	Method Name:	MovePointEast()
+        **	Parameters:		string WhichPoint: This string is used to determine which Point of the line is being worked on (either A, or B).
+        **	Return Values:	PointInfo: This method returns a filled out PointInfo struct containing the new X and Y coords.
+        **	Description:	This method is used to generate a pair of new X and Y coordinates for a point, depending on the value fed in as WhichPoint.
+        */
         private PointInfo MovePointEast(String WhichPoint)
         {
             PointInfo Result = new PointInfo();
@@ -960,6 +1024,12 @@ namespace WMP_Assignment4
             return Result;
         }
 
+        /*
+        **	Method Name:	MovePointSouthEast()
+        **	Parameters:		string WhichPoint: This string is used to determine which Point of the line is being worked on (either A, or B).
+        **	Return Values:	PointInfo: This method returns a filled out PointInfo struct containing the new X and Y coords.
+        **	Description:	This method is used to generate a pair of new X and Y coordinates for a point, depending on the value fed in as WhichPoint.
+        */
         private PointInfo MovePointSouthEast(String WhichPoint)
         {
             PointInfo Result = new PointInfo();
@@ -978,6 +1048,12 @@ namespace WMP_Assignment4
             return Result;
         }
 
+        /*
+        **	Method Name:	MovePointSouth()
+        **	Parameters:		string WhichPoint: This string is used to determine which Point of the line is being worked on (either A, or B).
+        **	Return Values:	PointInfo: This method returns a filled out PointInfo struct containing the new X and Y coords.
+        **	Description:	This method is used to generate a pair of new X and Y coordinates for a point, depending on the value fed in as WhichPoint.
+        */
         private PointInfo MovePointSouth(String WhichPoint)
         {
             PointInfo Result = new PointInfo();
@@ -996,6 +1072,12 @@ namespace WMP_Assignment4
             return Result;
         }
 
+        /*
+        **	Method Name:	MovePointSouthWest()
+        **	Parameters:		string WhichPoint: This string is used to determine which Point of the line is being worked on (either A, or B).
+        **	Return Values:	PointInfo: This method returns a filled out PointInfo struct containing the new X and Y coords.
+        **	Description:	This method is used to generate a pair of new X and Y coordinates for a point, depending on the value fed in as WhichPoint.
+        */
         private PointInfo MovePointSouthWest(String WhichPoint)
         {
             PointInfo Result = new PointInfo();
@@ -1014,6 +1096,12 @@ namespace WMP_Assignment4
             return Result;
         }
 
+        /*
+        **	Method Name:	MovePointWest()
+        **	Parameters:		string WhichPoint: This string is used to determine which Point of the line is being worked on (either A, or B).
+        **	Return Values:	PointInfo: This method returns a filled out PointInfo struct containing the new X and Y coords.
+        **	Description:	This method is used to generate a pair of new X and Y coordinates for a point, depending on the value fed in as WhichPoint.
+        */
         private PointInfo MovePointWest(String WhichPoint)
         {
             PointInfo Result = new PointInfo();
@@ -1032,6 +1120,12 @@ namespace WMP_Assignment4
             return Result;
         }
 
+        /*
+        **	Method Name:	MovePointNorthWest()
+        **	Parameters:		string WhichPoint: This string is used to determine which Point of the line is being worked on (either A, or B).
+        **	Return Values:	PointInfo: This method returns a filled out PointInfo struct containing the new X and Y coords.
+        **	Description:	This method is used to generate a pair of new X and Y coordinates for a point, depending on the value fed in as WhichPoint.
+        */
         private PointInfo MovePointNorthWest(String WhichPoint)
         {
             PointInfo Result = new PointInfo();
@@ -1050,12 +1144,20 @@ namespace WMP_Assignment4
             return Result;
         }
 
+        /*
+        **	Method Name:	ProcessMovement()
+        **	Parameters:		Line MyLine: This entity holds a reference to the Line that is being worked on.
+        **	Return Values:	Void.
+        **	Description:	This method is used to process the new coordinates for a line. The new coordinates are generated depending on what the current direction trend is (each point has unique trend).
+        **                  The resulting calculations are rounded to get rid of extra digits past the decmial point (they would interfere with some aspects of the drawing of the line).
+        **                  The previous coordinates are recorded into the PreviousPoints structs and finally the new values are written to MyLine.
+        */
         private void ProcessMovement(Line MyLine)
         {
             PointInfo NewPointA = new PointInfo();
             PointInfo NewPointB = new PointInfo();
 
-            // PointADirectionTrend Section:
+            // PointA Section:
 
             if (PointADirectionTrend == (int)DirectionTrends.None)
             {
@@ -1096,6 +1198,7 @@ namespace WMP_Assignment4
                 NewPointA = MovePointNorthWest("A");
             }
 
+            // PointB Section:
 
             if (PointBDirectionTrend == (int)DirectionTrends.None)
             {
@@ -1137,35 +1240,19 @@ namespace WMP_Assignment4
                 NewPointB = MovePointNorthWest("B");
             }
 
+
+            // Rounding numbers to eliminate excessively long values beyond the decimal point.
             NewPointA.X = Math.Round(NewPointA.X, 0);
             NewPointA.Y = Math.Round(NewPointA.Y, 0);
             NewPointB.X = Math.Round(NewPointB.X, 0);
             NewPointB.Y = Math.Round(NewPointB.Y, 0);
 
+            // Assigning new values as the values for MyLine.
             MyLine.X1 = NewPointA.X;
             MyLine.Y1 = NewPointA.Y;
 
             MyLine.X2 = NewPointB.X;
             MyLine.Y2 = NewPointB.Y;
-
-
-            // <DebuggingStatements>
-            if(NewPointA.X > ((double)LineSpeeds.High + PreviousPointA.X) || NewPointA.X < ((double)LineSpeeds.High - PreviousPointA.X))
-            {
-                Task.Run(() => 
-                {
-                    MessageBox.Show("Detected exceptional increase/decrease in X pos.");
-                });
-            }
-
-            if (NewPointA.Y > ((double)LineSpeeds.High + PreviousPointA.Y) || NewPointA.Y < ((double)LineSpeeds.High - PreviousPointA.Y))
-            {
-                Task.Run(() =>
-                {
-                    MessageBox.Show("Detected exceptional increase/decrease in Y pos.");
-                });
-            }
-            // </DebuggingStatements>
 
             // Recording the new values as the previous points.
             PreviousPointA.X = NewPointA.X;
