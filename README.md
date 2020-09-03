@@ -1,4 +1,4 @@
-# WMP_Assignment4
+# WMP_Assignment4 - A.K.A. The Line Generator Program.
 
 This program was an assignment for Windows and Mobile Programming, a course in the SET program I took at Conestoga College from Sept. 2017 - April 2020. 
 This course was focused heavily on the windows side of things and most of the assignments encouraged writing the solution in C# with WPF frontend (User Interface).
