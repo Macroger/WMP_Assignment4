@@ -1,7 +1,7 @@
 # WMP_Assignment4
 
-This program was the assignment for Windows and Mobile Programming, a course in the SET program I took at Conestoga College. This course was focused
-heavily on the windows side of things and most of the assignments encouraged writing the solution in C# with or without WPF frontend (User Interface).
+This program was an assignment for Windows and Mobile Programming, a course in the SET program I took at Conestoga College from Sept. 2017 - April 2020. 
+This course was focused heavily on the windows side of things and most of the assignments encouraged writing the solution in C# with WPF frontend (User Interface).
 
 This assignment was designed to give the student further experience using threads and tasks in a WPF environment. The goal was to create a program that generates
 lines which move around independently from each other using multi threading techniques. I utilized tasks for multi threading in this program and created a XAML
